@@ -75,7 +75,7 @@ namespace SolidWorksAPI
             m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
 
             //打开文件
-             m_ModelDoc = openModle(partfilepath);
+            m_ModelDoc = openModle(partfilepath);
 
             //生成缩略图
             // ModelView LoMyModelView; //生成缩略图
@@ -204,7 +204,7 @@ namespace SolidWorksAPI
             TimeSpan dt3 = dt2 - dt1;
 
             int goTime = dt3.Seconds;
-            MessageBox.Show(goTime.ToString()+"秒");
+            MessageBox.Show(goTime.ToString() + "秒");
         }
 
         #region 扩展
@@ -470,10 +470,10 @@ namespace SolidWorksAPI
             costingoutput.materialCosts = m_swCostingAnalysis.GetMaterialCost();
             costingoutput.totalNum = m_swCostingAnalysis.TotalQuantity;
             costingoutput.lotSize = m_swCostingAnalysis.LotSize;
-            costingoutput.totalCostrueToCharge =m_swCostingAnalysis.GetTotalCostToCharge();
+            costingoutput.totalCostrueToCharge = m_swCostingAnalysis.GetTotalCostToCharge();
             costingoutput.totalCostrueToManufacture = m_swCostingAnalysis.GetTotalCostToManufacture();
 
-            
+
         }
 
         /// <summary>
@@ -489,7 +489,7 @@ namespace SolidWorksAPI
                 swCostingMachining.CurrentMaterialClass = materialClass;
                 swCostingMachining.CurrentMaterial = materialName;
                 swCostingMachining.CurrentStockType = (int)stockType;
- 
+
 
                 costingoutput.stockType = swCostingMachining.CurrentStockType;
                 costingoutput.currentMaterial = swCostingMachining.CurrentMaterial;
@@ -755,7 +755,7 @@ namespace SolidWorksAPI
             swCostingFeat = (CostFeature)m_swCostingAnalysis.GetFirstCostFeature();
             while ((swCostingFeat != null))
             {
-              //  swcCostFeatureType_e.
+                //  swcCostFeatureType_e.
 
                 Debug.Print("    Feature: " + swCostingFeat.Name);
                 Debug.Print("      Type: " + swCostingFeat.GetType());
@@ -836,29 +836,29 @@ namespace SolidWorksAPI
 
                     int subType = cwFeat.SubType;
                     int volume = cwFeat.VolumeType;
-                    double depth =cwFeat.Depth;
+                    double depth = cwFeat.Depth;
 
-                    double taperAngle =  cwFeat.IGetTaperAngle();
-                    double topFillRadius  = cwFeat.IGetTopFilletRadius();
+                    double taperAngle = cwFeat.IGetTaperAngle();
+                    double topFillRadius = cwFeat.IGetTopFilletRadius();
 
                     int island = cwFeat.IGetIslandCount();
 
                     double dLeng = 0;
                     double dwidth = 0;
                     double dDepth = 0;
-                    cwFeat.GetBoundParams(out dLeng,out dwidth,out dDepth);
+                    cwFeat.GetBoundParams(out dLeng, out dwidth, out dDepth);
 
 
                     //string [] attrs = cwFeat.IGetAllAttributes();
 
-                   int tbdid = cwFeat.GetTdbIdForAttribute(strAttr);
+                    int tbdid = cwFeat.GetTdbIdForAttribute(strAttr);
 
 
 
                     // CWTurnFeature cwTurn = (CWTurnFeature)
                     // string strName = cwTurn.GetAttributeName();
 
-                   
+
 
                 }
 
@@ -872,13 +872,18 @@ namespace SolidWorksAPI
             CAM_Feature cf = new CAM_Feature();
             cf.ComputeFeature(cf.GetFeatuer());
             decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
-
+            double time = cf.GetTotalTime();//加工总用时
 
         }
 
-       
+        private void button6_Click(object sender, EventArgs e)
+        {
+            CAM_Feature cf = new CAM_Feature();
+            List<ProcessDetail> list = cf.GetProcessDetails();
+            double sums =  list.Sum(p => p.ToolpathTotalTime);
 
-       
+            
+        }
     }
 
 

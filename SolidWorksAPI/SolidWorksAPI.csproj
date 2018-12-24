@@ -76,8 +76,19 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CAM_Feature.cs" />
+    <Compile Include="Feature\CAM_Feature.cs" />
     <Compile Include="Debug.cs" />
+    <Compile Include="Feature\FeatureAmount.cs" />
+    <Compile Include="Feature\Island.cs" />
+    <Compile Include="Feature\ProcessDetail.cs" />
+    <Compile Include="Feature\Simple\Simple_Drilling.cs" />
+    <Compile Include="Feature\Simple\SimpleTurning.cs" />
+    <Compile Include="Feature\Simple\Simple_FaceTurning.cs" />
+    <Compile Include="Feature\Simple\Simple_FinishTurning.cs" />
+    <Compile Include="Feature\Simple\Simple_RoughTurning.cs" />
+    <Compile Include="Feature\SwCAM.cs" />
+    <Compile Include="Feature\SwMultiStep.cs" />
+    <Compile Include="Feature\TaperInfo.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

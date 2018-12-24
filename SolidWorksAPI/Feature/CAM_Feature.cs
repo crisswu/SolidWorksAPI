@@ -426,6 +426,19 @@ namespace SolidWorksAPI
             return tolMoney;
         }
         /// <summary>
+        /// 获取特征总时长 [要先执行 ComputeFeature 方法]
+        /// </summary>
+        /// <returns></returns>
+        public double GetTotalTime()
+        {
+            double tolTime = 0;
+            foreach (FeatureAmount item in TotalFeatureMoney)
+            {
+                tolTime += item.TotalTime;
+            }
+            return tolTime;
+        }
+        /// <summary>
         /// 计算总特征
         /// </summary>
         /// <param name="swCAM"></param>
@@ -477,6 +490,24 @@ namespace SolidWorksAPI
 
         }
 
+        /// <summary>
+        /// 获取机床类型（元/小时）
+        /// </summary>
+        /// <returns></returns>
+        public double GetMachineMoney()
+        {
+            return 40;
+        }
+
+        /// <summary>
+        /// 获取材料
+        /// </summary>
+        /// <returns></returns>
+        public Materials GetMaterials()
+        {
+            return Materials.Carbon;
+        }
+
         #region 特征金额计算
         /// <summary>
         /// 获取[孔]计算金额
@@ -486,8 +517,21 @@ namespace SolidWorksAPI
             FeatureAmount af = new FeatureAmount();
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
-            ///实现过程
-
+            //实现过程
+            
+            if (swCam.SubFeatureCount == 0) //单孔
+            {
+                Simple_Drilling p = new Simple_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
+                af.TotalTime = p.TotalTime;
+                double MachineMoney = GetMachineMoney();
+                af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+            }
+            else { //孔组
+                Simple_Drilling p = new Simple_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount, GetMaterials());
+                af.TotalTime = p.TotalTime;
+                double MachineMoney = GetMachineMoney();
+                af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+            }
 
             TotalFeatureMoney.Add(af);
         }
@@ -500,6 +544,7 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             ///实现过程
+           
 
             TotalFeatureMoney.Add(af);
         }
@@ -516,5 +561,48 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         #endregion
+
+        /// <summary>
+        /// 获取工序明细（获取时间以及刀具轨迹长度）
+        /// </summary>
+        /// <returns></returns>
+        public List<ProcessDetail> GetProcessDetails()
+        {
+            List<ProcessDetail> list = new List<ProcessDetail>();
+
+            CWApp cwApp = new CWApp();
+            CWPartDoc cwPd = (CWPartDoc)cwApp.IGetActiveDoc();
+            CWMillMachine cwMiillMach = (CWMillMachine)cwPd.IGetMachine();
+            CWDoc cwDoc = (CWDoc)cwApp.IGetActiveDoc();
+            cwApp.ActiveDocEMF();//提取特征
+            cwApp.ActiveDocGOP(1);// （暂时不理解,但是不调用 生成操作计划会有问题）
+            cwApp.ActiveDocGTP();//生成操作计划 + 生成道具轨迹
+            CWPartDoc cwPartDoc = (CWPartDoc)cwDoc;
+            CWMachine cwMach = (CWMachine)cwPartDoc.IGetMachine();
+            CWDispatchCollection cwDispCol = (CWDispatchCollection)cwMach.IGetEnumSetups();
+
+            for (int i = 0; i < cwDispCol.Count; i++)// 铣削零件设置组 
+            {
+                CWBaseSetup cwBaseSetup = (CWBaseSetup)cwDispCol.Item(i);
+
+                if (cwBaseSetup == null)
+                    continue;
+
+                CWDispatchCollection geo = cwBaseSetup.IGetEnumOperations();
+                for (int j = 0; j < geo.Count; j++)
+                {
+                    CWOperation operation = geo.Item(j);
+                    
+                    ProcessDetail pd = new ProcessDetail();
+                    pd.OperationName = operation.OperationName;
+                    pd.ToolpathTotalTime= operation.ToolpathTotalTime;// 时间
+                    pd.ToolpathTotalLength = operation.ToolpathTotalLength;//刀具总长度
+                    list.Add(pd);
+                }
+
+            }
+            return list;
+        }
+
     }
 }
