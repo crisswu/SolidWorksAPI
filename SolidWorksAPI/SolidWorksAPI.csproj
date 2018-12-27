@@ -76,6 +76,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AllFeature.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AllFeature.Designer.cs">
+      <DependentUpon>AllFeature.cs</DependentUpon>
+    </Compile>
     <Compile Include="Feature\CAM_Feature.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Feature\FeatureAmount.cs" />
@@ -100,6 +106,15 @@
     <Compile Include="HZ_MassProperty.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TimeLenght.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="TimeLenght.Designer.cs">
+      <DependentUpon>TimeLenght.cs</DependentUpon>
+    </Compile>
+    <EmbeddedResource Include="AllFeature.resx">
+      <DependentUpon>AllFeature.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
@@ -112,6 +127,9 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="TimeLenght.resx">
+      <DependentUpon>TimeLenght.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
