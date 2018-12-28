@@ -577,7 +577,7 @@ namespace SolidWorksAPI
 
             CWApp cwApp = new CWApp();
             CWPartDoc cwPd = (CWPartDoc)cwApp.IGetActiveDoc();
-            CWMillMachine cwMiillMach = (CWMillMachine)cwPd.IGetMachine();
+            
             CWDoc cwDoc = (CWDoc)cwApp.IGetActiveDoc();
             cwApp.ActiveDocEMF();//提取特征
             cwApp.ActiveDocGOP(1);// （暂时不理解,但是不调用 生成操作计划会有问题）
