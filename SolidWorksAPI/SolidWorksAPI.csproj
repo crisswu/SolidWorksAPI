@@ -82,6 +82,8 @@
     <Compile Include="AllFeature.Designer.cs">
       <DependentUpon>AllFeature.cs</DependentUpon>
     </Compile>
+    <Compile Include="Feature\Axis_3_Milling\Axis3Milling.cs" />
+    <Compile Include="Feature\Axis_3_Milling\Axis3_Drilling.cs" />
     <Compile Include="Feature\CAM_Feature.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Feature\FeatureAmount.cs" />
