@@ -890,6 +890,32 @@ namespace SolidWorksAPI
             //tl.ShowDialog();
             
         }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+ 
+            CWApp cwApp = new CWApp();
+            CWPartDoc cwPd = (CWPartDoc)cwApp.IGetActiveDoc();
+            CWDoc cwDoc = (CWDoc)cwApp.IGetActiveDoc();
+
+           int GX = (int)CWMachineType.CW_MACHINE_TYPE_TURN;
+ 
+            CAMWORKSLib.CWApp cwapp = new CAMWORKSLib.CWApp();
+            CAMWORKSLib.CWDoc doc = cwapp.IGetActiveDoc(); 
+ 
+            ICWDispatchCollection Machines = cwapp.GetMachines(GX);
+
+            foreach (CWTurnMachine item in Machines)
+            {
+                if ("Turn Dual Turret - Inch" == item.Name)
+                {
+                    doc.SetMachine2(item);
+                    break;
+                }
+            }
+
+             
+        }
     }
 
 
