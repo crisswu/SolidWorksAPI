@@ -519,19 +519,10 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             //实现过程
             
-            if (swCam.SubFeatureCount == 0) //单孔
-            {
-                Simple_Drilling p = new Simple_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
-                af.TotalTime = p.TotalTime;
-                double MachineMoney = GetMachineMoney();
-                af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
-            }
-            else { //孔组
-                Simple_Drilling p = new Simple_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount, GetMaterials());
-                af.TotalTime = p.TotalTime;
-                double MachineMoney = GetMachineMoney();
-                af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
-            }
+              Simple_Drilling p = new Simple_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount==0? 1 : swCam.SubFeatureCount, GetMaterials());
+              af.TotalTime = p.TotalTime;
+              double MachineMoney = GetMachineMoney();
+              af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
             TotalFeatureMoney.Add(af);
         }
@@ -544,20 +535,11 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             ///实现过程
-            if (swCam.SubFeatureCount == 0) //单孔
-            {
-                Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
+           
+                Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
                 af.TotalTime = p.TotalTime;
                 double MachineMoney = GetMachineMoney();
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
-            }
-            else //埋头孔组
-            {
-                Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount, GetMaterials());
-                af.TotalTime = p.TotalTime;
-                double MachineMoney = GetMachineMoney();
-                af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
-            }
 
             TotalFeatureMoney.Add(af);
         }
@@ -571,30 +553,15 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-            if (swCam.SubFeatureCount == 0) //单孔
-            {
                 //镗孔 第一阶段 底孔
-                Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
+                Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
                 af.TotalTime = p.TotalTime;
 
                 //镗孔 第二阶段 镗孔
-                Axis3_Drilling p2 = new Axis3_Drilling(swCam.BoreDiameter, swCam.BoreDepth, 1, GetMaterials());
-                af.TotalTime += p2.TotalTime; 
-                double MachineMoney = GetMachineMoney();
-                af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
-            }
-            else //沉镗孔组
-            {
-                //镗孔 第一阶段 底孔
-                Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount, GetMaterials());
-                af.TotalTime = p.TotalTime;
-
-                //镗孔 第二阶段 镗孔
-                Axis3_Drilling p2 = new Axis3_Drilling(swCam.BoreDiameter, swCam.BoreDepth, swCam.SubFeatureCount, GetMaterials());
+                Axis3_Drilling p2 = new Axis3_Drilling(swCam.BoreDiameter, swCam.BoreDepth, swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
                 af.TotalTime += p2.TotalTime;
                 double MachineMoney = GetMachineMoney();
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
-            }
 
                 TotalFeatureMoney.Add(af);
         }
