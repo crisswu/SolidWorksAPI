@@ -870,7 +870,7 @@ namespace SolidWorksAPI
         private void button5_Click(object sender, EventArgs e)
         {
             CAM_Feature cf = new CAM_Feature();
-            List<SwCAM> list = cf.GetFeatuer();
+            List<SwCAM> list = cf.GetFeatuer_Mill();
              cf.ComputeFeature(list); //计算总特征
             // decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
             // double time = cf.GetTotalTime();//加工总用时
@@ -919,7 +919,14 @@ namespace SolidWorksAPI
 
         private void button8_Click(object sender, EventArgs e)
         {
-             
+            CAM_Feature cf = new CAM_Feature();
+            List<SwCAM_Turn> list = cf.GetFeatuer_Turn();
+            //cf.ComputeFeature(list); //计算总特征
+            // decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
+            // double time = cf.GetTotalTime();//加工总用时
+            //AllFeature f = new AllFeature();
+            //f.list = list;
+            //f.ShowDialog();
         }
     }
 

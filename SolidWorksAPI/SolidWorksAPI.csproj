@@ -95,6 +95,7 @@
     <Compile Include="Feature\Simple\Simple_FinishTurning.cs" />
     <Compile Include="Feature\Simple\Simple_RoughTurning.cs" />
     <Compile Include="Feature\SwCAM.cs" />
+    <Compile Include="Feature\SwCAM_Turn.cs" />
     <Compile Include="Feature\SwMultiStep.cs" />
     <Compile Include="Feature\TaperInfo.cs" />
     <Compile Include="Form1.cs">

@@ -82,9 +82,9 @@
             // 
             this.button5.Location = new System.Drawing.Point(569, 44);
             this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(96, 48);
+            this.button5.Size = new System.Drawing.Size(154, 48);
             this.button5.TabIndex = 4;
-            this.button5.Text = "CAM2";
+            this.button5.Text = "获取铣削特征";
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
@@ -114,7 +114,7 @@
             this.button8.Name = "button8";
             this.button8.Size = new System.Drawing.Size(148, 46);
             this.button8.TabIndex = 7;
-            this.button8.Text = "...";
+            this.button8.Text = "获取车削特征";
             this.button8.UseVisualStyleBackColor = true;
             this.button8.Click += new System.EventHandler(this.button8_Click);
             // 

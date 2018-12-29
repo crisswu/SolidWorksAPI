@@ -28,10 +28,10 @@ namespace SolidWorksAPI
 
         #region 获取特征相关方法
         /// <summary>
-        /// 获取所有特征
+        /// 获取铣削所有特征
         /// </summary>
         /// <returns></returns>
-        public List<SwCAM> GetFeatuer()
+        public List<SwCAM> GetFeatuer_Mill()
         {
             try
             {
@@ -218,6 +218,106 @@ namespace SolidWorksAPI
             }
 
         }
+
+        /// <summary>
+        /// 获取车削所有特征
+        /// </summary>
+        /// <returns></returns>
+        public List<SwCAM_Turn> GetFeatuer_Turn()
+        {
+            try
+            {
+                List<SwCAM_Turn> swList = new List<SwCAM_Turn>();//获取全部特征
+
+                CWApp cwApp = new CWApp();
+                CWPartDoc cwPd = (CWPartDoc)cwApp.IGetActiveDoc();
+                CWDoc cwDoc = (CWDoc)cwApp.IGetActiveDoc();
+
+                cwApp.ActiveDocEMF();//提取特征 
+
+                CWPartDoc cwPartDoc = (CWPartDoc)cwDoc;
+                CWMachine cwMach = (CWMachine)cwPartDoc.IGetMachine();
+
+                CWDispatchCollection cwDispCol = (CWDispatchCollection)cwMach.IGetEnumSetups();
+
+                if (cwDispCol.Count == 0)
+                {
+                    Console.Write("该图纸无法提取特征！");
+                    return null;
+                }
+
+                for (int i = 0; i < cwDispCol.Count; i++)// 铣削零件设置组  如果count=0 则代表提取特征失败
+                {
+                    CWBaseSetup cwBaseSetup = (CWBaseSetup)cwDispCol.Item(i);//获取 铣削零件设置 
+
+                    if (cwBaseSetup == null)
+                        continue;
+
+                    ICWDispatchCollection FeatList = (ICWDispatchCollection)cwBaseSetup.IGetEnumFeatures();//方法获取程序上的所有特性
+
+                    for (int j = 0; j < FeatList.Count; j++)
+                    {
+                        ICWFeature pThisFeat = FeatList.Item(j);
+                        double[] atts = pThisFeat.GetFeatureAttributes();//获得该特征的参数属性
+
+                        SwCAM_Turn obj = new SwCAM_Turn();
+                        obj.FeatureName = pThisFeat.FeatureName;
+                        obj.FeatureType = pThisFeat.FeatType;
+                        obj.Length = atts[7];
+                        obj.Mindiameter = atts[9];
+                        obj.Width = atts[8];
+
+                        if (pThisFeat.FeatType == (int)CWFeatType_e.CW_FEAT_TYPE_TURN)
+                        {
+                            CWTurnFeature pMillFeat = (CWTurnFeature)pThisFeat;
+                            double MinDiameter;
+                            double MaxDiameter = pMillFeat.GetMinMaxDiameter(out MinDiameter);
+                            obj.MaxDiameter = MaxDiameter;
+                            obj.MinDiameter = MinDiameter;
+                            //int xxx = pMillFeat.GetTurnFeatureType();
+                            //Console.Write("是否主轴：" + pturnFeat.GetSpindleType().ToString() + "\n");
+                             
+                            //double sx = 0, sy = 0;
+                            //double ex = 0, ey = 0;
+                            //pturnFeat.GetStartPosition(out sx, out sy);
+
+                            //Console.Write("sx:" + minDia + ",sy:" + maxDia + "\n");
+                            //pturnFeat.GetEndPosition(out ex, out ey);
+                           
+
+                            //switch (pturnFeat.GetTurnFeatureType())
+                            //{
+                            //    case (int)CWFeatureCatalog_e.CW_FEAT_SLOT_RECT:
+                            //        ICWSlotRectFeat srf = (CWSlotRectFeat)pturnFeat;
+                            //        Console.Write("根部直径：" + srf.IGetCornerRadius() + "\n");
+                            //        Console.Write("宽度：" + srf.IGetWidth() + "\n");
+                            //        Console.Write("深度：" + srf.IGetLength() + "\n");
+                            //        break;
+                            //    default:
+                            //        break;
+                            //}
+                        }
+                        else
+                        {
+                            Console.Write("其他特征:" + pThisFeat.FeatType + "\n");
+                        }
+                      
+                        swList.Add(obj);
+
+                    }
+
+                }
+
+                return swList;
+            }
+            catch (Exception ep)
+            {
+                Console.Write(ep.Message);
+                return null;
+            }
+
+        }
+
         /// <summary>
         /// 获取组中子特征
         /// </summary>
