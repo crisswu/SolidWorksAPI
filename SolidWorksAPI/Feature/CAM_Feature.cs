@@ -618,8 +618,8 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             //实现过程
-            
-              Simple_Drilling p = new Simple_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount==0? 1 : swCam.SubFeatureCount, GetMaterials());
+
+              Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount==0? 1 : swCam.SubFeatureCount, GetMaterials());
               af.TotalTime = p.TotalTime;
               double MachineMoney = GetMachineMoney();
               af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -638,6 +638,7 @@ namespace SolidWorksAPI
            
                 Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
                 af.TotalTime = p.TotalTime;
+                af.TotalTime = af.TotalTime * 1.5; // 因为埋头孔有 沉头可以把此部分的时间 增加50% 来处理 （方案：Kevin.yang）
                 double MachineMoney = GetMachineMoney();
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
@@ -664,6 +665,20 @@ namespace SolidWorksAPI
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
                 TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
+        /// 矩形槽
+        /// </summary>
+        private void GetFeature_RectangleGroove(SwCAM_Mill swCam)
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = swCam.FeatureName;
+            af._SwCAM = swCam;
+            ///实现过程
+
+           /// Axis3_SurfaceRoughMilling p = new Axis3_SurfaceRoughMilling()
+
+            TotalFeatureMoney.Add(af);
         }
         #endregion
 
