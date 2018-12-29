@@ -24,8 +24,12 @@ namespace SolidWorksAPI
         /// </summary>
         public decimal Money { get; set; }
         /// <summary>
-        /// 特征明细
+        /// 铣削特征明细
         /// </summary>
-        public SwCAM _SwCAM;
+        public SwCAM_Mill _SwCAM;
+        /// <summary>
+        /// 铣削特征明细
+        /// </summary>
+        public SwCAM_Turn _SwCAM_Turn;
     }
 }

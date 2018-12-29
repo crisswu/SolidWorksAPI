@@ -31,11 +31,11 @@ namespace SolidWorksAPI
         /// 获取铣削所有特征
         /// </summary>
         /// <returns></returns>
-        public List<SwCAM> GetFeatuer_Mill()
+        public List<SwCAM_Mill> GetFeatuer_Mill()
         {
             try
             {
-                List<SwCAM> swList = new List<SwCAM>();//获取全部特征
+                List<SwCAM_Mill> swList = new List<SwCAM_Mill>();//获取全部特征
 
                 CWApp cwApp = new CWApp();
                 CWPartDoc cwPd = (CWPartDoc)cwApp.IGetActiveDoc();
@@ -67,7 +67,7 @@ namespace SolidWorksAPI
                     {
                         ICWFeature pThisFeat = FeatList.Item(j);
 
-                        SwCAM obj = new SwCAM();
+                        SwCAM_Mill obj = new SwCAM_Mill();
                         obj.FeatureName = pThisFeat.FeatureName;
                         obj.FeatureType = pThisFeat.FeatType;
                         obj.Axis = pThisFeat.Axis;
@@ -321,18 +321,18 @@ namespace SolidWorksAPI
         /// <summary>
         /// 获取组中子特征
         /// </summary>
-        private void GetSubFeatuer(ICWPatternFeature pPatternFeat, SwCAM obj)
+        private void GetSubFeatuer(ICWPatternFeature pPatternFeat, SwCAM_Mill obj)
         {
             try
             {
-                List<SwCAM> subList = new List<SwCAM>();
+                List<SwCAM_Mill> subList = new List<SwCAM_Mill>();
                 ICWDispatchCollection pDispCollection = pPatternFeat.IGetEnumChildFeatures();
                 obj.SubFeatureCount = pDispCollection.Count;
                 foreach (ICWFeature item in pDispCollection)
                 {
                     double[] atts = item.GetFeatureAttributes();
 
-                    SwCAM subobj = new SwCAM();
+                    SwCAM_Mill subobj = new SwCAM_Mill();
                     subobj.FeatureName = item.FeatureName;
                     subobj.FeatureType = item.FeatType;
                     subobj.Suppressed = item.Suppressed;
@@ -390,9 +390,9 @@ namespace SolidWorksAPI
             }
         }
         /// <summary>
-        /// 获取特征独有属性
+        /// 获取铣削特征独有属性
         /// </summary>
-        private void SetVolumeType(int VolumeType, double[] atts, ICWMillFeature pMillFeat, SwCAM obj)
+        private void SetVolumeType(int VolumeType, double[] atts, ICWMillFeature pMillFeat, SwCAM_Mill obj)
         {
             switch (pMillFeat.VolumeType)
             {
@@ -539,12 +539,12 @@ namespace SolidWorksAPI
             return tolTime;
         }
         /// <summary>
-        /// 计算总特征
+        /// 计算铣削总特征
         /// </summary>
         /// <param name="swCAM"></param>
-        public void ComputeFeature(List<SwCAM> swCAMs)
+        public void ComputeFeature_Mill(List<SwCAM_Mill> swCAMs)
         {
-            foreach (SwCAM item in swCAMs)
+            foreach (SwCAM_Mill item in swCAMs)
             {
                 switch (item.VolumeType)
                 {
@@ -612,7 +612,7 @@ namespace SolidWorksAPI
         /// <summary>
         /// 获取[孔]计算金额
         /// </summary>
-        private void GetFeature_Hole(SwCAM swCam)
+        private void GetFeature_Hole(SwCAM_Mill swCam)
         {
             FeatureAmount af = new FeatureAmount();
             af.FeatureName = swCam.FeatureName;
@@ -629,7 +629,7 @@ namespace SolidWorksAPI
         /// <summary>
         /// 获取[埋头孔]计算金额
         /// </summary>
-        private void GetFeature_HoleCtrsunk(SwCAM swCam)
+        private void GetFeature_HoleCtrsunk(SwCAM_Mill swCam)
         {
             FeatureAmount af = new FeatureAmount();
             af.FeatureName = swCam.FeatureName;
@@ -646,7 +646,7 @@ namespace SolidWorksAPI
         /// <summary>
         /// 获取[沉镗孔]计算金额
         /// </summary>
-        private void GetFeature_HoleCtrbore(SwCAM swCam)
+        private void GetFeature_HoleCtrbore(SwCAM_Mill swCam)
         {
             FeatureAmount af = new FeatureAmount();
             af.FeatureName = swCam.FeatureName;

@@ -16,7 +16,7 @@ namespace SolidWorksAPI
         {
             InitializeComponent();
         }
-        public List<SwCAM> list;
+        public List<SwCAM_Mill> list;
         private void AllFeature_Load(object sender, EventArgs e)
         {
             dataGridView1.DataSource = list;

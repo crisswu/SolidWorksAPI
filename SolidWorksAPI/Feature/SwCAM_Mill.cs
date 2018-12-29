@@ -9,7 +9,7 @@ namespace SolidWorksAPI
     /// <summary>
     /// CAMWork 特征类
     /// </summary>
-    public class SwCAM
+    public class SwCAM_Mill
     {
         /// <summary>
         /// 特征名称
@@ -106,7 +106,7 @@ namespace SolidWorksAPI
         /// <summary>
         /// 子特征
         /// </summary>
-        public List<SwCAM> SubFeatureList { get; internal set; }
+        public List<SwCAM_Mill> SubFeatureList { get; internal set; }
         /// <summary>
         /// 多阶 MS孔
         /// </summary>
