@@ -564,7 +564,9 @@ namespace SolidWorksAPI
                         if (item.FeatureName.IndexOf("矩形") >= 0)
                             GetFeature_RectangleGroove(item);
                         else if (item.FeatureName.IndexOf("腰形") >= 0)
-                            GetFeature_KidneyPock(item); 
+                            GetFeature_KidneyPock(item);
+                        else if (item.FeatureName.IndexOf("圆形凹腔") >= 0)
+                            GetFeature_CirclePock(item);
                         break; 
                     case (int)CWVolumeType_e.CW_SLOT_VOLUME://不规则槽、矩形槽、腰形槽
                         if (item.FeatureName.IndexOf("矩形") >= 0)
@@ -727,6 +729,22 @@ namespace SolidWorksAPI
             ///实现过程
 
             Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(swCam.Maxdiameter, swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
+            af.TotalTime = p.TotalTime;
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+            TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
+        /// 圆形凹腔
+        /// </summary>
+        private void GetFeature_CirclePock(SwCAM_Mill swCam)
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = swCam.FeatureName;
+            af._SwCAM = swCam;
+            ///实现过程
+            //使用腰形槽的方式，长宽 使用 直径来代替
+            Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(swCam.Maxdiameter, swCam.Maxdiameter, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
             af.TotalTime = p.TotalTime;
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额

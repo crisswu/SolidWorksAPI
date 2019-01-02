@@ -885,9 +885,9 @@ namespace SolidWorksAPI
             List<ProcessDetail> list = cf.GetProcessDetails();
             double sums =  list.Sum(p => p.ToolpathTotalTime);
 
-            TimeLenght tl = new TimeLenght();
-            tl.list = list;
-            tl.ShowDialog();
+            //TimeLenght tl = new TimeLenght();
+            //tl.list = list;
+            //tl.ShowDialog();
             
         }
 
