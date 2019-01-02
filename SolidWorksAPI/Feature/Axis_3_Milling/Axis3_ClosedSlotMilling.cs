@@ -3,68 +3,62 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Math;
 
 namespace SolidWorksAPI
 {
     /// <summary>
-    /// 3轴 粗加工
+    /// 3轴 -- 腰形凹腔
     /// </summary>
-    public class Axis3_SurfaceRoughMilling : Axis3Milling
+    public class Axis3_ClosedSlotMilling: Axis3Milling
     {
         /// <summary>
-        /// 棱角半径
+        /// 长度
         /// </summary>
-        public double EdgRadius { get; set; }
+        private double Length { get; set; }
         /// <summary>
-        /// 删除体积
+        /// 宽度
         /// </summary>
-        public double RemoveVolume { get; set; }
+        private double Width { get; set; }
         /// <summary>
-        /// 切削深度
+        /// 深度
         /// </summary>
-        public double CuttingDepth { get; set; }
+        private double Depth { get; set; }
         /// <summary>
-        /// 重叠率
+        /// 裁剪长度
         /// </summary>
-        public double overlapRate { get; set; }
-        /// <summary>
-        /// 材料清除率
-        /// </summary>
-        public double MaterialRemoveRate { get; set; }
+        private double CuttingLength { get; set; }
 
-        public Axis3_SurfaceRoughMilling(double Dia,double RemoveVolume,double CuttingDepth,double overlapRate,double NoOfPlace)
+        public Axis3_ClosedSlotMilling(double Dia, double Length, double Width, double Depth, int NoOfPlaces, Materials _Materials)
         {
-            this.Dia = Dia; 
-            this.No = 4; 
-            this.CuttingSpeed = GetCuttingSpeed();
-            this.FeedPer = 0.1;
-            this.ReserveLength = 5;
-            this._Materials = _Materials; 
+            this.Dia = Dia;
+            this.Depth = Depth;
+            this.Length = Length;
+            this.Width = Width;
             this.NoOfPlaces = NoOfPlaces;
-            this.RemoveVolume = RemoveVolume;
-            this.CuttingDepth = CuttingDepth;
-            this.overlapRate = overlapRate;
+            this.No = 4;
+            this.CuttingSpeed = GetCuttingSpeed();
+            this.FeedPer = 0.06;
+            this.ReserveLength = 2;
+            this._Materials = _Materials;
             Calculate_SpindleSpeed();
             Calculate_FeedRate();
+            Calculate_CuttingLength();
             Calculate_CuttingTime();
             Calculate_TotalTime();
-            Calculate_MaterialRemoveRate();
         }
         /// <summary>
-        /// 计算材料清除率
+        /// 裁剪长度
         /// </summary>
-        private void Calculate_MaterialRemoveRate()
-        {
-            // 计算公式 =( L4^2*2*ACOS((L4-N4)/L4)/2-(L4-N4)*L4*SIN(ACOS((L4-N4)/L4)))*K4*O4/100
-            this.MaterialRemoveRate = (Math.Pow(this.EdgRadius, 2) * 2 * Math.Acos((this.EdgRadius - this.CuttingDepth) / this.EdgRadius) / 2 - (this.EdgRadius - CuttingDepth) * this.EdgRadius * Math.Sin(Math.Cos((this.EdgRadius - this.CuttingDepth) / this.EdgRadius))) * this.FeedRate * this.overlapRate / 100;
+        protected void Calculate_CuttingLength()
+        { 
+            this.CuttingLength = (3.14*(this.Width - this.Dia)+2*(this.Length - this.Width)+2*(this.ReserveLength + this.Depth)) * Math.Round(this.Depth /1.5, 0);
         }
         /// <summary>
         /// 裁剪时间
         /// </summary>
         protected override void Calculate_CuttingTime()
         {
-            this.CuttingTime = this.RemoveVolume / this.MaterialRemoveRate * 60;
+            this.CuttingTime = (this.CuttingLength + this.ReserveLength) * this.NoOfPlaces * 60 / this.FeedRate;
         }
         /// <summary>
         /// 计算 进给速率
@@ -87,22 +81,23 @@ namespace SolidWorksAPI
                 this.SpindleSpeed = this.CuttingSpeed * 1000 / (this.Dia * 3.14);
             }
         }
-        /// <summary>
-        /// 加工时间合计
-        /// </summary>
+
         protected override void Calculate_TotalTime()
         {
             this.TotalTime = this.AtcTime + this.OtherTime + this.CuttingTime;
         }
-
+        /// <summary>
+        /// 获取材料切割速度
+        /// </summary>
+        /// <returns></returns>
         protected override int GetCuttingSpeed()
-        { 
+        {
             switch (this._Materials)
             {
                 case Materials.Carbon:
                     return 120;
                 case Materials.Alloy:
-                    return 120;
+                    return 100;
                 case Materials.Stainless:
                     return 80;
                 case Materials.Aluminum:

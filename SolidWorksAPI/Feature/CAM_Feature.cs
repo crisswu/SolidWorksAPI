@@ -551,26 +551,6 @@ namespace SolidWorksAPI
                     case (int)CWVolumeType_e.CW_HOLE_VOLUME://孔或者孔组
                         GetFeature_Hole(item);
                         break;
-                    case (int)CWVolumeType_e.CW_POCKET_VOLUME://不规则凹腔 、圆形凹腔、腰形凹腔、矩形凹腔
-                        break;
-                    case (int)CWVolumeType_e.CW_BOSS_VOLUME://圆形凸台
-                       
-                        break;
-                    case (int)CWVolumeType_e.CW_SLOT_VOLUME://不规则槽、矩形槽
-                        
-                        break;
-                    case (int)CWVolumeType_e.CW_SLAB_VOLUME: //面特征
-                         
-                        break;
-                    case (int)CWVolumeType_e.CW_OPENPOCKET_VOLUME: //开放式凹腔 、周界-非封闭凹腔
-                        
-                        break;
-                    case (int)CWVolumeType_e.CW_WORKPIECE_VOLUME:
-                        
-                        break;
-                    case (int)CWVolumeType_e.CW_3AXIS_VOLUME:
-                        
-                        break;
                     case (int)CWVolumeType_e.CW_HOLECTRSUNK_VOLUME: //埋头孔
                         GetFeature_HoleCtrsunk(item);
                         break;
@@ -578,9 +558,31 @@ namespace SolidWorksAPI
                         GetFeature_HoleCtrbore(item);
                         break;
                     case (int)CWVolumeType_e.CW_MULTISTEP_VOLUME:   //MS孔  (多阶)
+                        GetFeature_MSHole(item);
                         return;
+                    case (int)CWVolumeType_e.CW_POCKET_VOLUME://不规则凹腔 、圆形凹腔、腰形凹腔、矩形凹腔
+                        if (item.FeatureName.IndexOf("矩形") >= 0)
+                            GetFeature_RectangleGroove(item);
+                        else if (item.FeatureName.IndexOf("腰形") >= 0)
+                            GetFeature_KidneyPock(item); 
+                        break; 
+                    case (int)CWVolumeType_e.CW_SLOT_VOLUME://不规则槽、矩形槽、腰形槽
+                        if (item.FeatureName.IndexOf("矩形") >= 0)
+                            GetFeature_RectangleGroove(item);
+                        else if (item.FeatureName.IndexOf("腰形") >= 0)
+                            GetFeature_KidneySlot(item);
+                         break; 
+                    case (int)CWVolumeType_e.CW_OPENPOCKET_VOLUME: //开放式凹腔 、周界-非封闭凹腔
+                        break;
+                    case (int)CWVolumeType_e.CW_BOSS_VOLUME://圆形凸台 
+                        break;
+                    case (int)CWVolumeType_e.CW_SLAB_VOLUME: //面特征
+                        break;
                     case (int)CWVolumeType_e.CW_MULTIFACE_VOLUME:
-                        
+                        break;
+                    case (int)CWVolumeType_e.CW_WORKPIECE_VOLUME:
+                        break;
+                    case (int)CWVolumeType_e.CW_3AXIS_VOLUME:
                         break;
                     default:
                         break;
@@ -667,6 +669,37 @@ namespace SolidWorksAPI
                 TotalFeatureMoney.Add(af);
         }
         /// <summary>
+        /// 获取[MS孔]计算金额
+        /// </summary>
+        private void GetFeature_MSHole(SwCAM_Mill swCam)
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = swCam.FeatureName;
+            af._SwCAM = swCam;
+            //实现过程
+
+            af.TotalTime = 0;
+
+            foreach (SwMultiStep item in swCam.SubMultiStep)
+            {
+                if (item.MultiSetpType == 1)//圆柱
+                {
+                    Axis3_Drilling p = new Axis3_Drilling(item.Diameter,item.Depth,1, GetMaterials());
+                    af.TotalTime += p.TotalTime;
+                }
+                else if (item.MultiSetpType == 2)//倒角
+                {
+                    Axis3_ChamferMilling p = new Axis3_ChamferMilling(swCam.Maxdiameter, item.TopDiameter * 3.14, item.Depth, 1,GetMaterials());
+                    af.TotalTime += p.TotalTime;
+                }
+            }
+
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+
+            TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
         /// 矩形槽
         /// </summary>
         private void GetFeature_RectangleGroove(SwCAM_Mill swCam)
@@ -676,8 +709,43 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-           /// Axis3_SurfaceRoughMilling p = new Axis3_SurfaceRoughMilling()
+            Axis3_PocketMilling p = new Axis3_PocketMilling(swCam.Maxdiameter,swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
+            af.TotalTime = p.TotalTime;
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
+            TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
+        /// 腰形槽
+        /// </summary>
+        private void GetFeature_KidneySlot(SwCAM_Mill swCam)
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = swCam.FeatureName;
+            af._SwCAM = swCam;
+            ///实现过程
+
+            Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(swCam.Maxdiameter, swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
+            af.TotalTime = p.TotalTime;
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+            TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
+        /// 腰形凹腔
+        /// </summary>
+        private void GetFeature_KidneyPock(SwCAM_Mill swCam)
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = swCam.FeatureName;
+            af._SwCAM = swCam;
+            ///实现过程
+
+            Axis3_ClosedSlotMilling p = new Axis3_ClosedSlotMilling(swCam.Maxdiameter, swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
+            af.TotalTime = p.TotalTime;
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
             TotalFeatureMoney.Add(af);
         }
         #endregion
