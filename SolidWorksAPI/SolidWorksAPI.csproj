@@ -88,9 +88,11 @@
     <Compile Include="Feature\Axis_3_Milling\Axis3_ChamferMilling.cs" />
     <Compile Include="Feature\Axis_3_Milling\Axis3_OpenSlotMilling.cs" />
     <Compile Include="Feature\Axis_3_Milling\Axis3_PocketMilling.cs" />
+    <Compile Include="Feature\Axis_3_Milling\Axis3_SurfaceFinishMilling.cs" />
     <Compile Include="Feature\Axis_3_Milling\Axis3_SurfaceRoughMilling.cs" />
     <Compile Include="Feature\CAM_Feature.cs" />
     <Compile Include="Debug.cs" />
+    <Compile Include="Feature\Cutters\Cutter_Drill.cs" />
     <Compile Include="Feature\FeatureAmount.cs" />
     <Compile Include="Feature\Island.cs" />
     <Compile Include="Feature\ProcessDetail.cs" />

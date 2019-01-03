@@ -80,9 +80,9 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(569, 44);
+            this.button5.Location = new System.Drawing.Point(50, 97);
             this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(154, 48);
+            this.button5.Size = new System.Drawing.Size(495, 48);
             this.button5.TabIndex = 4;
             this.button5.Text = "获取铣削特征";
             this.button5.UseVisualStyleBackColor = true;
@@ -90,9 +90,9 @@
             // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(222, 112);
+            this.button6.Location = new System.Drawing.Point(50, 151);
             this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(162, 43);
+            this.button6.Size = new System.Drawing.Size(495, 43);
             this.button6.TabIndex = 5;
             this.button6.Text = "获取加工时间";
             this.button6.UseVisualStyleBackColor = true;
@@ -100,9 +100,9 @@
             // 
             // button7
             // 
-            this.button7.Location = new System.Drawing.Point(50, 112);
+            this.button7.Location = new System.Drawing.Point(50, 252);
             this.button7.Name = "button7";
-            this.button7.Size = new System.Drawing.Size(166, 43);
+            this.button7.Size = new System.Drawing.Size(495, 43);
             this.button7.TabIndex = 6;
             this.button7.Text = "设置车床类型";
             this.button7.UseVisualStyleBackColor = true;
@@ -110,9 +110,9 @@
             // 
             // button8
             // 
-            this.button8.Location = new System.Drawing.Point(397, 112);
+            this.button8.Location = new System.Drawing.Point(50, 200);
             this.button8.Name = "button8";
-            this.button8.Size = new System.Drawing.Size(148, 46);
+            this.button8.Size = new System.Drawing.Size(495, 46);
             this.button8.TabIndex = 7;
             this.button8.Text = "获取车削特征";
             this.button8.UseVisualStyleBackColor = true;
@@ -122,7 +122,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(753, 200);
+            this.ClientSize = new System.Drawing.Size(608, 327);
             this.Controls.Add(this.button8);
             this.Controls.Add(this.button7);
             this.Controls.Add(this.button6);

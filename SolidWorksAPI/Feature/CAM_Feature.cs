@@ -128,6 +128,7 @@ namespace SolidWorksAPI
 
                             List<Island> islands = new List<Island>();//获取岛屿
                             ICWDispatchCollection islandCollection = pMillFeat.IGetIslands();
+
                             foreach (CWIslandInfo item in islandCollection)
                             {
                                 Island island = new Island();
@@ -567,13 +568,17 @@ namespace SolidWorksAPI
                             GetFeature_KidneyPock(item);
                         else if (item.FeatureName.IndexOf("圆形凹腔") >= 0)
                             GetFeature_CirclePock(item);
+                        else
+                            GetFeature_RectangleGroove(item);//************ 不规则凹腔 暂定走 矩形槽  ***************
                         break; 
                     case (int)CWVolumeType_e.CW_SLOT_VOLUME://不规则槽、矩形槽、腰形槽
                         if (item.FeatureName.IndexOf("矩形") >= 0)
                             GetFeature_RectangleGroove(item);
                         else if (item.FeatureName.IndexOf("腰形") >= 0)
                             GetFeature_KidneySlot(item);
-                         break; 
+                        else
+                            GetFeature_RectangleGroove(item);//************ 不规则槽 暂定走 矩形槽  **********************
+                        break; 
                     case (int)CWVolumeType_e.CW_OPENPOCKET_VOLUME: //开放式凹腔 、周界-非封闭凹腔
                         break;
                     case (int)CWVolumeType_e.CW_BOSS_VOLUME://圆形凸台 
@@ -622,7 +627,7 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             //实现过程
-
+              
               Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount==0? 1 : swCam.SubFeatureCount, GetMaterials());
               af.TotalTime = p.TotalTime;
               double MachineMoney = GetMachineMoney();
@@ -663,7 +668,7 @@ namespace SolidWorksAPI
                 af.TotalTime = p.TotalTime;
 
                 //镗孔 第二阶段 镗孔
-                Axis3_Drilling p2 = new Axis3_Drilling(swCam.BoreDiameter, swCam.BoreDepth, swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
+                Axis3_Drilling p2 = new Axis3_Drilling(swCam.Maxdiameter, swCam.BoreDepth, swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
                 af.TotalTime += p2.TotalTime;
                 double MachineMoney = GetMachineMoney();
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -686,12 +691,12 @@ namespace SolidWorksAPI
             {
                 if (item.MultiSetpType == 1)//圆柱
                 {
-                    Axis3_Drilling p = new Axis3_Drilling(item.Diameter,item.Depth,1, GetMaterials());
+                    Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, item.Depth,1, GetMaterials());
                     af.TotalTime += p.TotalTime;
                 }
                 else if (item.MultiSetpType == 2)//倒角
                 {
-                    Axis3_ChamferMilling p = new Axis3_ChamferMilling(swCam.Maxdiameter, item.TopDiameter * 3.14, item.Depth, 1,GetMaterials());
+                    Axis3_ChamferMilling p = new Axis3_ChamferMilling(Cutter_Drill.chamfer, item.TopDiameter * 3.14, item.Depth, 1,GetMaterials());
                     af.TotalTime += p.TotalTime;
                 }
             }
@@ -711,7 +716,7 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-            Axis3_PocketMilling p = new Axis3_PocketMilling(swCam.Maxdiameter,swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
+            Axis3_PocketMilling p = new Axis3_PocketMilling(Cutter_Drill.pocked, swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
             af.TotalTime = p.TotalTime;
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -728,7 +733,7 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-            Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(swCam.Maxdiameter, swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
+            Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(Cutter_Drill.openSlot, swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
             af.TotalTime = p.TotalTime;
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -744,7 +749,7 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
             //使用腰形槽的方式，长宽 使用 直径来代替
-            Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(swCam.Maxdiameter, swCam.Maxdiameter, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
+            Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(Cutter_Drill.openSlot, swCam.Maxdiameter, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
             af.TotalTime = p.TotalTime;
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -760,7 +765,7 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-            Axis3_ClosedSlotMilling p = new Axis3_ClosedSlotMilling(swCam.Maxdiameter, swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
+            Axis3_ClosedSlotMilling p = new Axis3_ClosedSlotMilling(Cutter_Drill.closeSlot, swCam.Bound[0], swCam.Bound[1], swCam.Bound[2], swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount, GetMaterials());
             af.TotalTime = p.TotalTime;
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额

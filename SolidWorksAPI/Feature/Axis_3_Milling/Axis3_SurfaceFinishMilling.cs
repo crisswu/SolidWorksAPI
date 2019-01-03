@@ -4,68 +4,75 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-
 namespace SolidWorksAPI
 {
     /// <summary>
-    /// 3轴 粗铣
+    /// 3轴 -- 精铣
     /// </summary>
-    public class Axis3_SurfaceRoughMilling : Axis3Milling
+   public class Axis3_SurfaceFinishMilling:Axis3Milling
     {
         /// <summary>
         /// 棱角半径
         /// </summary>
         public double EdgRadius { get; set; }
         /// <summary>
-        /// 删除体积
+        /// 表面积
         /// </summary>
-        public double RemoveVolume { get; set; }
+        public double SurfaceArea { get; set; }
         /// <summary>
-        /// 切削深度
+        /// 裁剪宽度
         /// </summary>
-        public double CuttingDepth { get; set; }
+        public double CuttingWidth { get; set; }
         /// <summary>
-        /// 重叠率
+        /// 表面粗糙度
         /// </summary>
-        public double overlapRate { get; set; }
-        /// <summary>
-        /// 材料清除率
-        /// </summary>
-        public double MaterialRemoveRate { get; set; }
+        public double SurfaceRoughness { get; set; }
 
-        public Axis3_SurfaceRoughMilling(double Dia,double RemoveVolume,double CuttingDepth,double overlapRate,double NoOfPlace, Materials _Materials)
+        /// <summary>
+        /// 裁剪长度
+        /// </summary>
+        public double CuttingLength { get; set; }
+
+        public Axis3_SurfaceFinishMilling(double Dia, double EdgRadius, double SurfaceArea, double SurfaceRoughness, double NoOfPlace, Materials _Materials)
         {
-            this.Dia = Dia; 
-            this.No = 4; 
+            this.Dia = Dia;
+            this.No = 2;
             this.CuttingSpeed = GetCuttingSpeed();
             this.FeedPer = 0.1;
             this.ReserveLength = 5;
-            this._Materials = _Materials; 
+            this._Materials = _Materials;
             this.NoOfPlaces = NoOfPlaces;
-            this.RemoveVolume = RemoveVolume;
-            this.CuttingDepth = CuttingDepth;
-            this.overlapRate = overlapRate;
-
+            this.EdgRadius = EdgRadius;
+            this.SurfaceArea = SurfaceArea;
+            this.SurfaceRoughness = SurfaceRoughness;
+            Calculate_CuttingWidth();
+            Calculate_CuttingLength();
             Calculate_SpindleSpeed();
             Calculate_FeedRate();
             Calculate_CuttingTime();
             Calculate_TotalTime();
-            Calculate_MaterialRemoveRate();
+           
         }
         /// <summary>
-        /// 计算材料清除率
+        /// 裁剪长度
         /// </summary>
-        private void Calculate_MaterialRemoveRate()
+        public void Calculate_CuttingLength()
         {
-            // 计算公式 =( L4^2*2*ACOS((L4-N4)/L4)/2-(L4-N4)*L4*SIN(ACOS((L4-N4)/L4)))*K4*O4/100
-            this.MaterialRemoveRate = (Math.Pow(this.EdgRadius, 2) * 2 * Math.Acos((this.EdgRadius - this.CuttingDepth) / this.EdgRadius) / 2 - (this.EdgRadius - CuttingDepth) * this.EdgRadius * Math.Sin(Math.Cos((this.EdgRadius - this.CuttingDepth) / this.EdgRadius))) * this.FeedRate * this.overlapRate / 100;
+            this.CuttingLength = this.SurfaceArea / CuttingWidth;
+        }
+        /// <summary>
+        /// 裁剪宽度
+        /// </summary>
+        private void Calculate_CuttingWidth()
+        {
+            this.CuttingWidth = 2 * Math.Sqrt(Math.Pow(this.EdgRadius, 2) - Math.Pow((this.EdgRadius - this.SurfaceRoughness / 1000), 2));
         }
         /// <summary>
         /// 裁剪时间
         /// </summary>
         protected override void Calculate_CuttingTime()
         {
-            this.CuttingTime = this.RemoveVolume / this.MaterialRemoveRate * 60;
+            this.CuttingTime = (this.CuttingLength + this.ReserveLength) * this.NoOfPlaces * 60 / this.FeedRate;
         }
         /// <summary>
         /// 计算 进给速率
@@ -97,19 +104,19 @@ namespace SolidWorksAPI
         }
 
         protected override int GetCuttingSpeed()
-        { 
+        {
             switch (this._Materials)
             {
                 case Materials.Carbon:
-                    return 120;
+                    return 160;
                 case Materials.Alloy:
-                    return 120;
+                    return 160;
                 case Materials.Stainless:
-                    return 80;
+                    return 120;
                 case Materials.Aluminum:
-                    return 200;
+                    return 250;
                 default:
-                    return 200;
+                    return 250;
             }
         }
     }
