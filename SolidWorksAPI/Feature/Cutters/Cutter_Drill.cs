@@ -31,13 +31,34 @@ namespace SolidWorksAPI
         {
             if (length > 20 && width > 20)
                 return 20;
-            else if ((length <= 20 && length > 16) && (width <= 20 && width > 16) )
-                return 16;
-            else if ((length <= 16 && length > 10) && (width <= 16 && width > 10))
-                return 16;
             else
-                return 10;
+            {
+                if (length > 16 && width > 16)
+                    return 16;
+                else
+                {
+                    if (length > 10 && width > 10)
+                        return 10;
+                    else
+                    {
+                        return 6;
+                    }
+                }
+            }
         }
+        /// <summary>
+        /// 精铣刀具（根据上把粗铣到 选择精铣刀具）
+        /// </summary>
+        /// <param name="aftherSize">上一把刀的直径</param>
+        /// <returns></returns>
+        public static double GetFinish(double aftherSize)
+        {
+            if (aftherSize == 20)
+                return 10;
+            else
+                return 6;
+        }
+
         /// <summary>
         /// 获取槽铣刀
         /// </summary>
@@ -50,9 +71,9 @@ namespace SolidWorksAPI
             else if (diameter <= 20 && diameter > 16)
                 return 16;
             else if (diameter <= 16 && diameter > 10)
-                return 16;
-            else
                 return 10;
+            else
+                return 6;
         }
     }
 }

@@ -52,7 +52,8 @@ namespace SolidWorksAPI
         /// </summary>
         protected void Calculate_CuttingLength()
         {
-            this.CuttingLength = (Math.Round(this.Width / this.Dia, 0) * (this.Length - this.Dia) + this.Width - this.Dia) * Math.Round(this.Depth / 2, 0) + this.Depth;
+            //(  ROUNDUP(M4/F4,0)   *  (L4-F4)+M4-F4)   *     ROUNDUP(N4/2,0)+N4
+            this.CuttingLength = (Math.Ceiling(this.Width / this.Dia) * (this.Length - this.Dia) + this.Width - this.Dia) * Math.Ceiling(this.Depth / 2) + this.Depth;
         }
         /// <summary>
         /// 裁剪时间

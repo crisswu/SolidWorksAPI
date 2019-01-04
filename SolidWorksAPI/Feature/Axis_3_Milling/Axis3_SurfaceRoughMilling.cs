@@ -33,14 +33,14 @@ namespace SolidWorksAPI
         /// </summary>
         public double MaterialRemoveRate { get; set; }
 
-        public Axis3_SurfaceRoughMilling(double Dia,double RemoveVolume,double CuttingDepth,double overlapRate,double NoOfPlace, Materials _Materials)
+        public Axis3_SurfaceRoughMilling(double Dia,double RemoveVolume,double CuttingDepth,double overlapRate,int Number, Materials _Materials)
         {
             this.Dia = Dia; 
             this.No = 4;  
             this.FeedPer = 0.1;
             this.ReserveLength = 5;
             this._Materials = _Materials; 
-            this.NoOfPlaces = NoOfPlaces;
+            this.NoOfPlaces = Number;
             this.RemoveVolume = RemoveVolume;
             this.CuttingDepth = CuttingDepth;
             this.overlapRate = overlapRate;

@@ -876,7 +876,16 @@ namespace SolidWorksAPI
              double time = cf.GetTotalTime();//加工总用时
             int temp = Convert.ToInt32(Math.Round(time, 0));
             double temp2 = Math.Round(time/60, 0);
-            MessageBox.Show(temp.ToString()+"秒 || "+temp2 + "分钟");
+            // MessageBox.Show(temp.ToString()+"秒 || "+temp2 + "分钟");
+
+            string sumStr = "";
+            foreach (FeatureAmount item in cf.TotalFeatureMoney)
+            {
+                sumStr += (item.FeatureName + "   :   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n");
+            }
+            sumStr += "\n共 : "+temp.ToString() + "秒 || " + temp2 + "分钟 \n";
+            MessageBox.Show(sumStr);
+
             //AllFeature f = new AllFeature();
             //f.list = list;
             //f.ShowDialog();

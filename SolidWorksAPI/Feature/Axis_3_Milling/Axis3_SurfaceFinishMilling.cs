@@ -33,7 +33,7 @@ namespace SolidWorksAPI
         /// </summary>
         public double CuttingLength { get; set; }
 
-        public Axis3_SurfaceFinishMilling(double Dia, double EdgRadius, double SurfaceArea, double SurfaceRoughness, double NoOfPlace, Materials _Materials)
+        public Axis3_SurfaceFinishMilling(double Dia, double EdgRadius, double SurfaceArea, double SurfaceRoughness, int NoOfPl, Materials _Materials)
         {
             this.Dia = Dia;
             this.No = 2;
@@ -41,7 +41,7 @@ namespace SolidWorksAPI
             this.CuttingSpeed = GetCuttingSpeed();
             this.FeedPer = 0.1;
             this.ReserveLength = 5; 
-            this.NoOfPlaces = NoOfPlaces;
+            this.NoOfPlaces = NoOfPl;
             this.EdgRadius = EdgRadius;
             this.SurfaceArea = SurfaceArea;
             this.SurfaceRoughness = SurfaceRoughness;
@@ -51,7 +51,6 @@ namespace SolidWorksAPI
             Calculate_FeedRate();
             Calculate_CuttingTime();
             Calculate_TotalTime();
-           
         }
         /// <summary>
         /// 裁剪长度
