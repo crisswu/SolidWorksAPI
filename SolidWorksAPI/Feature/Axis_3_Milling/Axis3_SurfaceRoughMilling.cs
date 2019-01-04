@@ -36,8 +36,7 @@ namespace SolidWorksAPI
         public Axis3_SurfaceRoughMilling(double Dia,double RemoveVolume,double CuttingDepth,double overlapRate,double NoOfPlace, Materials _Materials)
         {
             this.Dia = Dia; 
-            this.No = 4; 
-            this.CuttingSpeed = GetCuttingSpeed();
+            this.No = 4;  
             this.FeedPer = 0.1;
             this.ReserveLength = 5;
             this._Materials = _Materials; 
@@ -45,7 +44,7 @@ namespace SolidWorksAPI
             this.RemoveVolume = RemoveVolume;
             this.CuttingDepth = CuttingDepth;
             this.overlapRate = overlapRate;
-
+            this.CuttingSpeed = GetCuttingSpeed();
             Calculate_SpindleSpeed();
             Calculate_FeedRate();
             Calculate_CuttingTime();

@@ -26,10 +26,10 @@ namespace SolidWorksAPI
             this.HoleDepth = HoleDepth;
             this.NoOfPlaces = NoOfPlaces;
             this.No = 2;
+            this._Materials = _Materials;
             this.CuttingSpeed = GetCuttingSpeed();
             this.FeedPer = 0.07;
-            this.ReserveLength = 5;
-            this._Materials = _Materials;
+            this.ReserveLength = 5; 
             Calculate_SpindleSpeed();
             Calculate_FeedRate();
             Calculate_CuttingTime();

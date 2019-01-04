@@ -37,10 +37,10 @@ namespace SolidWorksAPI
         {
             this.Dia = Dia;
             this.No = 2;
+            this._Materials = _Materials;
             this.CuttingSpeed = GetCuttingSpeed();
             this.FeedPer = 0.1;
-            this.ReserveLength = 5;
-            this._Materials = _Materials;
+            this.ReserveLength = 5; 
             this.NoOfPlaces = NoOfPlaces;
             this.EdgRadius = EdgRadius;
             this.SurfaceArea = SurfaceArea;

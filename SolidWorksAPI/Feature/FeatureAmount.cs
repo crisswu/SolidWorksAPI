@@ -16,7 +16,7 @@ namespace SolidWorksAPI
         /// </summary>
         public string FeatureName { get; set; }
         /// <summary>
-        /// 加工用时
+        /// 加工用时 （秒）
         /// </summary>
         public double TotalTime { get; set; }
         /// <summary>

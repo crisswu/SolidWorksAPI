@@ -35,11 +35,11 @@ namespace SolidWorksAPI
             this.Length = Length;
             this.Width = Width;
             this.NoOfPlaces = NoOfPlaces;
-            this.No = 4;
-            this.CuttingSpeed = GetCuttingSpeed();
+            this.No = 4; 
             this.FeedPer = 0.06;
             this.ReserveLength = 2;
             this._Materials = _Materials;
+            this.CuttingSpeed = GetCuttingSpeed();
             Calculate_SpindleSpeed();
             Calculate_FeedRate();
             Calculate_CuttingLength();

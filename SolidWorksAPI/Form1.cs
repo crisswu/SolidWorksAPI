@@ -874,6 +874,9 @@ namespace SolidWorksAPI
             cf.ComputeFeature_Mill(list); //计算总特征
             // decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
              double time = cf.GetTotalTime();//加工总用时
+            int temp = Convert.ToInt32(Math.Round(time, 0));
+            double temp2 = Math.Round(time/60, 0);
+            MessageBox.Show(temp.ToString()+"秒 || "+temp2 + "分钟");
             //AllFeature f = new AllFeature();
             //f.list = list;
             //f.ShowDialog();
@@ -889,10 +892,12 @@ namespace SolidWorksAPI
             List<ProcessDetail> list = cf.GetProcessDetails();
             double sums =  list.Sum(p => p.ToolpathTotalTime);
 
+            double sec = sums * 60;
+            MessageBox.Show(sec+"秒");
             //TimeLenght tl = new TimeLenght();
             //tl.list = list;
             //tl.ShowDialog();
-            
+
         }
 
         private void button7_Click(object sender, EventArgs e)

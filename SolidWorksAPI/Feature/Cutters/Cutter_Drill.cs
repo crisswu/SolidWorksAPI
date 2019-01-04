@@ -27,9 +27,32 @@ namespace SolidWorksAPI
         /// </summary>
         /// <param name="diameter"></param>
         /// <returns></returns>
-        public static double GetPoked(double diameter)
+        public static double GetPoked(double length,double width)
         {
-            return 0;
+            if (length > 20 && width > 20)
+                return 20;
+            else if ((length <= 20 && length > 16) && (width <= 20 && width > 16) )
+                return 16;
+            else if ((length <= 16 && length > 10) && (width <= 16 && width > 10))
+                return 16;
+            else
+                return 10;
+        }
+        /// <summary>
+        /// 获取槽铣刀
+        /// </summary>
+        /// <param name="diameter"></param>
+        /// <returns></returns>
+        public static double GetCirclePock(double diameter)
+        {
+            if (diameter > 20)
+                return 20;
+            else if (diameter <= 20 && diameter > 16)
+                return 16;
+            else if (diameter <= 16 && diameter > 10)
+                return 16;
+            else
+                return 10;
         }
     }
 }
