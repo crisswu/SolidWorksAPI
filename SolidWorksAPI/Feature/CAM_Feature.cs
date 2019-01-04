@@ -136,7 +136,6 @@ namespace SolidWorksAPI
 
                                 foreach (CWIslandInfo item in islandCollection)
                                 {
-                                    
                                     Island island = new Island();
                                     island.Depth = item.GetDepth();
                                     islands.Add(island);
