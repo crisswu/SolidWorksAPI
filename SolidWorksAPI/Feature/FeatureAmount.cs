@@ -31,5 +31,10 @@ namespace SolidWorksAPI
         /// 铣削特征明细
         /// </summary>
         public SwCAM_Turn _SwCAM_Turn;
+
+        public int Test_ProcessCount;//切削次数
+        public double Test_SingleTime;//单次时间
+        public double Test_Dia;//刀具直径
+
     }
 }

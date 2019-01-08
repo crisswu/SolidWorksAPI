@@ -866,9 +866,11 @@ namespace SolidWorksAPI
 
 
         }
-
+        //获取铣削特征
         private void button5_Click(object sender, EventArgs e)
         {
+            DateTime dt1 = DateTime.Now;
+
             CAM_Feature cf = new CAM_Feature();
             List<SwCAM_Mill> list = cf.GetFeatuer_Mill();
             cf.ComputeFeature_Mill(list); //计算总特征
@@ -876,37 +878,49 @@ namespace SolidWorksAPI
              double time = cf.GetTotalTime();//加工总用时
             int temp = Convert.ToInt32(Math.Round(time, 0));
             double temp2 = Math.Round(time/60, 0);
-            // MessageBox.Show(temp.ToString()+"秒 || "+temp2 + "分钟");
-
-            string sumStr = "";
+            string sumStr = "【获取铣削特征】\n";
             foreach (FeatureAmount item in cf.TotalFeatureMoney)
             {
-                sumStr += (item.FeatureName + "   :   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n");
+                if (item.FeatureName.IndexOf("矩形槽") >= 0 || item.FeatureName.IndexOf("不规则槽") >= 0)
+                    sumStr += (item.FeatureName + "   :   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 --------  单次时间：" + item.Test_SingleTime + "秒   走刀次数:" + item.Test_ProcessCount + "次   尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0],2)+ " * " + Math.Round(item._SwCAM.Bound[1],2) + " * " + Math.Round(item._SwCAM.Depth,2)+"]  刀具直径："+item.Test_Dia+" \n");
+                else
+                    sumStr += item.FeatureName + "   :   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n";
             }
-            sumStr += "\n共 : "+temp.ToString() + "秒 || " + temp2 + "分钟 \n";
-            MessageBox.Show(sumStr);
+            sumStr += "======================\n";
 
-            //AllFeature f = new AllFeature();
-            //f.list = list;
-            //f.ShowDialog();
+            DateTime dt2 = DateTime.Now;
+            TimeSpan ts = dt2 - dt1;
+            sumStr += "程序用时:" + ts.Seconds + "秒";
+
+            sumStr += "\n共(sec) : "+temp.ToString() + "秒 \n共(min) :" + temp2 + "分钟 \n";
+            txtMsg.Text = sumStr;
+
+        
+
         }
         /// <summary>
-        /// 获取加工时间
+        /// 获取CAM加工时间
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void button6_Click(object sender, EventArgs e)
         {
+            DateTime dt1 = DateTime.Now;
+
             CAM_Feature cf = new CAM_Feature();
             List<ProcessDetail> list = cf.GetProcessDetails();
             double sums =  list.Sum(p => p.ToolpathTotalTime);
 
-            double sec = sums * 60;
-            MessageBox.Show(sec+"秒");
-            //TimeLenght tl = new TimeLenght();
-            //tl.list = list;
-            //tl.ShowDialog();
+            int temp = Convert.ToInt32(Math.Round(sums, 2));
+            double temp2 = Math.Round(sums * 60, 2);
+            string sumStr = "【获取CAM加工时间】\n";
 
+            DateTime dt2 = DateTime.Now;
+            TimeSpan ts = dt2 - dt1;
+            sumStr += "程序用时:" + ts.Seconds + "秒\n";
+
+            sumStr += "共(sec) : " + temp2.ToString() + "秒 \n共(min) :" + temp + "分钟 \n";
+            txtMsg.Text = sumStr;
         }
 
         private void button7_Click(object sender, EventArgs e)
@@ -946,6 +960,31 @@ namespace SolidWorksAPI
             //f.list = list;
             //f.ShowDialog();
 
+        }
+        //特征刀轨二合一
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            DateTime dt1 = DateTime.Now;
+            CAM_Feature cf = new CAM_Feature();
+            MergeFeatrueDetail list = cf.GetFeatuerMill_And_Process();
+            cf.ComputeFeature_Mill_Process(list); //计算总特征 
+
+            double time = cf.GetTotalTime();//加工总用时
+            int temp = Convert.ToInt32(Math.Round(time, 0));
+            double temp2 = Math.Round(time / 60, 0);
+            string sumStr = "【特征刀轨二合一】\n";
+            foreach (FeatureAmount item in cf.TotalFeatureMoney)
+            {
+                sumStr += (item.FeatureName + "   :   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n");
+            }
+            sumStr += "======================\n";
+
+            DateTime dt2 = DateTime.Now;
+            TimeSpan ts = dt2 - dt1;
+            sumStr += "程序用时:" + ts.Seconds + "秒";
+
+            sumStr += "\n共(sec) : " + temp.ToString() + "秒 \n共(min) :" + temp2 + "分钟 \n";
+            txtMsg.Text = sumStr;
         }
     }
 

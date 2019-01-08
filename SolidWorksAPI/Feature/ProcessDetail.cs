@@ -16,6 +16,10 @@ namespace SolidWorksAPI
         /// </summary>
         public string OperationName { get; set; }
         /// <summary>
+        /// 特征名称
+        /// </summary>
+        public string FeatureName { get; set; }
+        /// <summary>
         /// 工序所用时间(min)
         /// </summary>
         public double ToolpathTotalTime { get; set; }

@@ -95,6 +95,7 @@
     <Compile Include="Feature\Cutters\Cutter_Drill.cs" />
     <Compile Include="Feature\FeatureAmount.cs" />
     <Compile Include="Feature\Island.cs" />
+    <Compile Include="Feature\MergeFeatrueDetail.cs" />
     <Compile Include="Feature\ProcessDetail.cs" />
     <Compile Include="Feature\Simple\Simple_Drilling.cs" />
     <Compile Include="Feature\Simple\SimpleTurning.cs" />
