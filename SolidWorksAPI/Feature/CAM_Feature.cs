@@ -19,14 +19,203 @@ namespace SolidWorksAPI
         /* 说明:先执行GetFeatuer方法 获取所有特征  拿结果在去调用 ComputeFeature 方法来计算出 所有特征金额 放入到 TotalFeatureMoney 当中 在去调用 GetTotalMoney 获得最后金额  
          * 如果有额外的特征出现 可直接追加 GetFeature_XXX 方法 在 ComputeFeature 中添加调用即可 */
 
-        public List<FeatureAmount> TotalFeatureMoney = new List<FeatureAmount>();//全部 特征金额
+        /// <summary>
+        /// 全部特征总结算结果
+        /// </summary>
+        public List<FeatureAmount> TotalFeatureMoney = new List<FeatureAmount>();
+        /// <summary>
+        /// 获取零件设置 次数 （为了获取装夹时间 ）
+        /// </summary>
+        private int SetCount = 0;
+        /// <summary>
+        /// 毛坯尺寸
+        /// </summary>
+        private double[] StockSize = new double[3];
 
         public CAM_Feature()
         {
           
         }
 
-        #region 获取特征相关方法
+        /// <summary>
+        /// 计算铣削总特征
+        /// </summary>
+        /// <param name="swCAM"></param>
+        public void ComputeFeature_Mill(List<SwCAM_Mill> swCAMs)
+        {
+            foreach (SwCAM_Mill item in swCAMs)
+            {
+                switch (item.VolumeType)
+                {
+                    case (int)CWVolumeType_e.CW_HOLE_VOLUME://孔或者孔组
+                        GetFeature_Hole(item);
+                        break;
+                    case (int)CWVolumeType_e.CW_HOLECTRSUNK_VOLUME: //埋头孔
+                        GetFeature_HoleCtrsunk(item);
+                        break;
+                    case (int)CWVolumeType_e.CW_HOLECTRBORE_VOLUME: //沉镗孔
+                        GetFeature_HoleCtrbore(item);
+                        break;
+                    case (int)CWVolumeType_e.CW_MULTISTEP_VOLUME:   //MS孔  (多阶)
+                        GetFeature_MSHole(item);
+                        break;
+                    case (int)CWVolumeType_e.CW_POCKET_VOLUME://不规则凹腔 、圆形凹腔、腰形凹腔、矩形凹腔
+                        if (item.FeatureName.IndexOf("矩形") >= 0)
+                            GetFeature_RectangleCavity(item);
+                        else if (item.FeatureName.IndexOf("腰型") >= 0)
+                            GetFeature_KidneyPock(item);
+                        else if (item.FeatureName.IndexOf("圆形凹腔") >= 0)
+                            GetFeature_CirclePock(item);
+                        else
+                            GetFeature_AnomalyCavity(item);//不规则凹腔
+                        break;
+                    case (int)CWVolumeType_e.CW_SLOT_VOLUME://不规则槽、矩形槽、腰形槽
+                        if (item.FeatureName.IndexOf("矩形") >= 0)
+                            GetFeature_RectangleGroove(item);
+                        else if (item.FeatureName.IndexOf("腰型") >= 0)
+                            GetFeature_KidneySlot(item);
+                        else
+                            GetFeature_AnomalyGroove(item);//不规则槽
+                        break;
+                    case (int)CWVolumeType_e.CW_OPENPOCKET_VOLUME: //开放式凹腔 、周界-非封闭凹腔
+                        break;
+                    case (int)CWVolumeType_e.CW_BOSS_VOLUME://圆形凸台 
+                        break;
+                    case (int)CWVolumeType_e.CW_SLAB_VOLUME: //面特征
+                        break;
+                    case (int)CWVolumeType_e.CW_MULTIFACE_VOLUME:
+                        break;
+                    case (int)CWVolumeType_e.CW_WORKPIECE_VOLUME:
+                        break;
+                    case (int)CWVolumeType_e.CW_3AXIS_VOLUME:
+                        break;
+                    default:
+                        break;
+
+                }
+            }
+
+        }
+        /// <summary>
+        /// 获取特征总金额 [要先执行 ComputeFeature 方法]
+        /// </summary>
+        /// <returns></returns>
+        public decimal GetTotalMoney()
+        {
+            decimal tolMoney = 0;
+            foreach (FeatureAmount item in TotalFeatureMoney)
+            {
+                tolMoney += item.Money;
+            }
+            return tolMoney;
+        }
+        /// <summary>
+        /// 获取特征总时长 [要先执行 ComputeFeature 方法]
+        /// </summary>
+        /// <returns></returns>
+        public double GetTotalTime()
+        {
+            double tolTime = 0;
+            foreach (FeatureAmount item in TotalFeatureMoney)
+            {
+                tolTime += item.TotalTime;
+            }
+            return tolTime;
+        }
+        /// <summary>
+        /// 获取机床类型（元/小时）
+        /// </summary>
+        /// <returns></returns>
+        public double GetMachineMoney()
+        {
+            return 40;
+        }
+        /// <summary>
+        /// 长宽高转换(根据数值不同重新分配长宽高)
+        /// </summary>
+        /// <param name="oldBound"></param>
+        /// <param name="Depth"></param>
+        /// <returns></returns>
+        public double[] ConvertLWH(double[] oldBound, double Depth)
+        {
+            List<double> temp = oldBound.ToList();
+            if (Depth != -1000)
+                temp.Add(Depth);
+            temp.Sort();
+            temp.Reverse();//倒叙排列
+            return temp.ToArray();
+        }
+        /// <summary>
+        /// 裁剪次数 （深度/刀具直径*0.25）
+        /// </summary>
+        /// <returns></returns>
+        public int NumberOfWalkCut(double Depth, double Dia)
+        {
+            double cutTools = Dia * 0.25;//算出刀具每次的切割深度
+            double sumWalk = Depth / cutTools;//换算出 总共需要走多少次
+            double Cei = Math.Ceiling(sumWalk);//获取最大整数  例： 3.1 = 4
+            return Convert.ToInt32(Cei);
+        }
+        /// <summary>
+        /// 获取材料
+        /// </summary>
+        /// <returns></returns>
+        public Materials GetMaterials()
+        {
+            return Materials.Aluminum;
+        }
+        /// <summary>
+        /// 获取装夹时间[要先执行 ComputeFeature方法]
+        /// </summary>
+        /// <returns></returns>
+        public double GetSetFixture(List<SwCAM_Mill> list)
+        {
+            double MaxLenght = 0;//最大长度
+            foreach (SwCAM_Mill item in list)
+            {
+                if (item.Bound[0] > MaxLenght)
+                    MaxLenght = item.Bound[0];
+                if (item.Bound[1] > MaxLenght)
+                    MaxLenght = item.Bound[1];
+                if (item.Bound[2] > MaxLenght)
+                    MaxLenght = item.Bound[2];
+                if (item.Depth > MaxLenght)
+                    MaxLenght = item.Depth;
+            }
+
+            if (MaxLenght <= 300) //当最大长度 <300mm  每个面  * 30秒
+                return 30 * SetCount;
+            else if (MaxLenght > 300 && MaxLenght <= 500)
+                return 60 * SetCount;
+            else if (MaxLenght > 500 && MaxLenght <= 1000)
+                return 180 * SetCount;
+            else
+                return 600 * SetCount;
+        }
+        /// <summary>
+        /// 面部轮廓粗铣
+        /// </summary>
+        /// <returns></returns>
+        public double GetFaceRoughMill(List<SwCAM_Mill> list)
+        {
+            double time = 0;
+
+            //double[] bound = ConvertLWH(swCam.Bound, swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+
+            //double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
+
+            //foreach (SwCAM_Mill item in list)
+            //{
+            //    if (item.FeatureName.IndexOf("面特征") >= 0)
+            //    {
+            //          Axis3_SurfaceRoughMilling arm = new Axis3_SurfaceRoughMilling(CutterTool,(bound[0] * bound[1]),)
+            //    }
+            //}
+
+            return time;
+        }
+
+        #region ===== 获取特征相关方法 =====
         /// <summary>
         /// 获取铣削所有特征
         /// </summary>
@@ -48,9 +237,14 @@ namespace SolidWorksAPI
 
                 CWDispatchCollection cwDispCol = (CWDispatchCollection)cwMach.IGetEnumSetups();
 
+                ICWDoc3 a1 = (ICWDoc3)cwDoc;
+                double d1, d2, d3, d4, d5, d6;
+                a1.GetBoxRecordParams(out d1, out d2, out d3, out d4, out d5, out d6);
+                StockSize = ConvertLWH(new double[] { d4, d5, d6 }, -1000);//获取毛坯尺寸
+
                 if (cwDispCol.Count == 0)
                 {
-                    Console.Write("该图纸无法提取特征！"); 
+                    Console.Write("该图纸无法提取特征！");
                     return null;
                 }
 
@@ -58,6 +252,7 @@ namespace SolidWorksAPI
                 {
                     CWBaseSetup cwBaseSetup = (CWBaseSetup)cwDispCol.Item(i);//获取 铣削零件设置 
 
+                    SetCount = cwDispCol.Count;//获取零件设置 次数。。
                     if (cwBaseSetup == null)
                         continue;
 
@@ -128,7 +323,7 @@ namespace SolidWorksAPI
 
                             List<Island> islands = new List<Island>();//获取岛屿
                             ICWDispatchCollection islandCollection = pMillFeat.IGetIslands();
-                            object  jjjj = pMillFeat.IGetIslands();
+                            object jjjj = pMillFeat.IGetIslands();
                             if (pThisFeat.FeatureName == "矩形凹腔1")
                             {
                                 int landCount = pMillFeat.IGetIslandCount();
@@ -147,7 +342,7 @@ namespace SolidWorksAPI
                                 }
 
                             }
-                            
+
 
                             foreach (CWIslandInfo item in islandCollection)
                             {
@@ -174,7 +369,7 @@ namespace SolidWorksAPI
 
                             }
 
-                           
+
 
                             if (pMillFeat.IsPatternFeature()) //获取组信息， 子列表
                             {
@@ -296,14 +491,14 @@ namespace SolidWorksAPI
                             obj.MinDiameter = MinDiameter;
                             //int xxx = pMillFeat.GetTurnFeatureType();
                             //Console.Write("是否主轴：" + pturnFeat.GetSpindleType().ToString() + "\n");
-                             
+
                             //double sx = 0, sy = 0;
                             //double ex = 0, ey = 0;
                             //pturnFeat.GetStartPosition(out sx, out sy);
 
                             //Console.Write("sx:" + minDia + ",sy:" + maxDia + "\n");
                             //pturnFeat.GetEndPosition(out ex, out ey);
-                           
+
 
                             //switch (pturnFeat.GetTurnFeatureType())
                             //{
@@ -321,7 +516,7 @@ namespace SolidWorksAPI
                         {
                             Console.Write("其他特征:" + pThisFeat.FeatType + "\n");
                         }
-                      
+
                         swList.Add(obj);
 
                     }
@@ -471,8 +666,8 @@ namespace SolidWorksAPI
                     if (pMillFeat is CWMultiStepFeature)
                     {
                         CWMultiStepFeature sf = (CWMultiStepFeature)pMillFeat;
-                      // double dd = sf.GetDepth();
-                       // sf.GetStartPoint();
+                        // double dd = sf.GetDepth();
+                        // sf.GetStartPoint();
                         int steps = sf.GetNumOfSteps();
 
                         obj.SubMultiStep = new List<SwMultiStep>();
@@ -580,111 +775,7 @@ namespace SolidWorksAPI
         }
         #endregion
 
-        /// <summary>
-        /// 获取特征总金额 [要先执行 ComputeFeature 方法]
-        /// </summary>
-        /// <returns></returns>
-        public decimal GetTotalMoney()
-        {
-            decimal tolMoney = 0;
-            foreach (FeatureAmount item in TotalFeatureMoney)
-            {
-                tolMoney += item.Money;
-            }
-            return tolMoney;
-        }
-        /// <summary>
-        /// 获取特征总时长 [要先执行 ComputeFeature 方法]
-        /// </summary>
-        /// <returns></returns>
-        public double GetTotalTime()
-        {
-            double tolTime = 0;
-            foreach (FeatureAmount item in TotalFeatureMoney)
-            {
-                tolTime += item.TotalTime;
-            }
-            return tolTime;
-        }
-        /// <summary>
-        /// 计算铣削总特征
-        /// </summary>
-        /// <param name="swCAM"></param>
-        public void ComputeFeature_Mill(List<SwCAM_Mill> swCAMs)
-        {
-            foreach (SwCAM_Mill item in swCAMs)
-            {
-                switch (item.VolumeType)
-                {
-                    case (int)CWVolumeType_e.CW_HOLE_VOLUME://孔或者孔组
-                        GetFeature_Hole(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_HOLECTRSUNK_VOLUME: //埋头孔
-                        GetFeature_HoleCtrsunk(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_HOLECTRBORE_VOLUME: //沉镗孔
-                        GetFeature_HoleCtrbore(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_MULTISTEP_VOLUME:   //MS孔  (多阶)
-                        GetFeature_MSHole(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_POCKET_VOLUME://不规则凹腔 、圆形凹腔、腰形凹腔、矩形凹腔
-                        if (item.FeatureName.IndexOf("矩形") >= 0)
-                            GetFeature_RectangleCavity(item);
-                        else if (item.FeatureName.IndexOf("腰型") >= 0)
-                            GetFeature_KidneyPock(item);
-                        else if (item.FeatureName.IndexOf("圆形凹腔") >= 0)
-                            GetFeature_CirclePock(item);
-                        else
-                            GetFeature_AnomalyCavity(item);//不规则凹腔
-                        break; 
-                    case (int)CWVolumeType_e.CW_SLOT_VOLUME://不规则槽、矩形槽、腰形槽
-                        if (item.FeatureName.IndexOf("矩形") >= 0)
-                            GetFeature_RectangleGroove(item);
-                        else if (item.FeatureName.IndexOf("腰型") >= 0)
-                            GetFeature_KidneySlot(item);
-                        else
-                            GetFeature_AnomalyGroove(item);//不规则槽
-                        break; 
-                    case (int)CWVolumeType_e.CW_OPENPOCKET_VOLUME: //开放式凹腔 、周界-非封闭凹腔
-                        break;
-                    case (int)CWVolumeType_e.CW_BOSS_VOLUME://圆形凸台 
-                        break;
-                    case (int)CWVolumeType_e.CW_SLAB_VOLUME: //面特征
-                        break;
-                    case (int)CWVolumeType_e.CW_MULTIFACE_VOLUME:
-                        break;
-                    case (int)CWVolumeType_e.CW_WORKPIECE_VOLUME:
-                        break;
-                    case (int)CWVolumeType_e.CW_3AXIS_VOLUME:
-                        break;
-                    default:
-                        break;
-
-                }
-            }
-
-        }
-
-        /// <summary>
-        /// 获取机床类型（元/小时）
-        /// </summary>
-        /// <returns></returns>
-        public double GetMachineMoney()
-        {
-            return 40;
-        }
-
-        /// <summary>
-        /// 获取材料
-        /// </summary>
-        /// <returns></returns>
-        public Materials GetMaterials()
-        {
-            return Materials.Aluminum;
-        }
-
-        #region 特征金额计算
+        #region ===== 特征时间计算 =====
         /// <summary>
         /// 获取[孔]计算金额
         /// </summary>
@@ -697,7 +788,7 @@ namespace SolidWorksAPI
             
              Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
              af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-            af.TotalTime = af.TotalTime * 2;// 增加点孔的时间！！ 翻倍~
+            af.TotalTime = af.TotalTime * 3;// 增加点孔的时间！！ 翻倍~
             double MachineMoney = GetMachineMoney();
               af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
@@ -715,7 +806,7 @@ namespace SolidWorksAPI
            
                 Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
                 af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-                af.TotalTime = af.TotalTime * 2.5; // 因为埋头孔有 沉头可以把此部分的时间 增加50% 来处理  在增加点孔时间 共 2.5倍 （方案：Kevin.yang） 
+                af.TotalTime = af.TotalTime * 3.5; // 因为埋头孔有 沉头可以把此部分的时间 增加50% 来处理  在增加点孔时间 共 3.5倍 （方案：Kevin.yang） 
                 double MachineMoney = GetMachineMoney();
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
@@ -734,7 +825,7 @@ namespace SolidWorksAPI
                 //镗孔 第一阶段 底孔
                 Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth,1, GetMaterials());
                 af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-               af.TotalTime = af.TotalTime * 2;// 增加点孔的时间！！ 翻倍~
+               af.TotalTime = af.TotalTime * 3;// 增加点孔的时间！！ 翻倍~
 
             //镗孔 第二阶段 镗孔
             Axis3_Drilling p2 = new Axis3_Drilling(swCam.Maxdiameter, swCam.BoreDepth, 1, GetMaterials());
@@ -993,34 +1084,8 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         #endregion
-        /// <summary>
-        /// 长宽高转换(根据数值不同重新分配长宽高)
-        /// </summary>
-        /// <param name="oldBound"></param>
-        /// <param name="Depth"></param>
-        /// <returns></returns>
-        public double[] ConvertLWH(double[] oldBound,double Depth)
-        {
-            List<double> temp = oldBound.ToList();
-            temp.Add(Depth);
-            temp.Sort();
-            temp.Reverse();//倒叙排列
-            //oldBound.OrderBy(p => p);
-            return temp.ToArray();
-        }
-        /// <summary>
-        /// 裁剪次数 （深度/刀具直径*0.25）
-        /// </summary>
-        /// <returns></returns>
-        public int NumberOfWalkCut(double Depth,double Dia)
-        {
-            double cutTools = Dia * 0.25;//算出刀具每次的切割深度
-            double sumWalk = Depth / cutTools;//换算出 总共需要走多少次
-            double Cei = Math.Ceiling(sumWalk);//获取最大整数  例： 3.1 = 4
-            return  Convert.ToInt32(Cei);
-        }
 
-        #region 获取特征与刀具轨迹合二为一
+        #region ===== 获取特征与刀具轨迹合二为一 =====
         /// <summary>
         /// 获取铣削所有特征 and 刀具轨迹时间明细 (PS：把两部分合为一步是节省了一次提取特征的时间)
         /// </summary>
@@ -1032,17 +1097,20 @@ namespace SolidWorksAPI
                 List<SwCAM_Mill> swList = new List<SwCAM_Mill>();//获取全部特征
                 List<ProcessDetail> list = new List<ProcessDetail>();//刀具轨迹明细
 
-                CWApp cwApp = new CWApp();
-                CWPartDoc cwPd = (CWPartDoc)cwApp.IGetActiveDoc();
+                CWApp cwApp = new CWApp(); 
                 CWDoc cwDoc = (CWDoc)cwApp.IGetActiveDoc();
-
+                  
                 cwApp.ActiveDocEMF();//提取特征 
                 cwApp.ActiveDocGOP(1);// （暂时不理解,但是不调用 生成操作计划会有问题）
                 cwApp.ActiveDocGTP();//生成操作计划 + 生成道具轨迹
                 CWPartDoc cwPartDoc = (CWPartDoc)cwDoc;
                 CWMachine cwMach = (CWMachine)cwPartDoc.IGetMachine();
-
                 CWDispatchCollection cwDispCol = (CWDispatchCollection)cwMach.IGetEnumSetups();
+
+                ICWDoc3 a1 = (ICWDoc3)cwApp.IGetActiveDoc();
+                double d1, d2, d3, d4, d5, d6;
+                a1.GetBoxRecordParams(out d1, out d2, out d3, out d4, out d5, out d6);
+                StockSize = ConvertLWH(new double[] { d4, d5, d6 }, -1000);//获取毛坯尺寸
 
                 if (cwDispCol.Count == 0)
                 {
@@ -1062,6 +1130,8 @@ namespace SolidWorksAPI
                     for (int j = 0; j < geo.Count; j++)
                     {
                         CWOperation operation = geo.Item(j);
+
+                       // ICWPartPerimeterFeat pf = geo.Item(j); 毛坯的接口。但是找不到创建实例的方法。。。
 
                         ProcessDetail pd = new ProcessDetail();
                         pd.OperationName = operation.OperationName;
@@ -1083,7 +1153,7 @@ namespace SolidWorksAPI
 
                     for (int j = 0; j < FeatList.Count; j++)
                     {
-                        ICWFeature pThisFeat = FeatList.Item(j);
+                        ICWFeature pThisFeat = FeatList.Item(j); 
 
                         SwCAM_Mill obj = new SwCAM_Mill();
                         obj.FeatureName = pThisFeat.FeatureName;

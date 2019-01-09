@@ -875,17 +875,20 @@ namespace SolidWorksAPI
             List<SwCAM_Mill> list = cf.GetFeatuer_Mill();
             cf.ComputeFeature_Mill(list); //计算总特征
             // decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
+            double fix = cf.GetSetFixture(list);//获取装夹时间
              double time = cf.GetTotalTime();//加工总用时
+            time += fix;
             int temp = Convert.ToInt32(Math.Round(time, 0));
             double temp2 = Math.Round(time/60, 0);
             string sumStr = "【获取铣削特征】\n";
             foreach (FeatureAmount item in cf.TotalFeatureMoney)
             {
                 if (item.FeatureName.IndexOf("矩形槽") >= 0 || item.FeatureName.IndexOf("不规则槽") >= 0)
-                    sumStr += (item.FeatureName + "   :   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 --------  单次时间：" + item.Test_SingleTime + "秒   走刀次数:" + item.Test_ProcessCount + "次   尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0],2)+ " * " + Math.Round(item._SwCAM.Bound[1],2) + " * " + Math.Round(item._SwCAM.Depth,2)+"]  刀具直径："+item.Test_Dia+" \n");
+                    sumStr += (item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 --------  单次时间：" + item.Test_SingleTime + "秒   走刀次数:" + item.Test_ProcessCount + "次   尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0],2)+ " * " + Math.Round(item._SwCAM.Bound[1],2) + " * " + Math.Round(item._SwCAM.Depth,2)+"]  刀具直径："+item.Test_Dia+" \n");
                 else
-                    sumStr += item.FeatureName + "   :   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n";
+                    sumStr += item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n";
             }
+            sumStr += "装夹时间:"+fix+"秒\n";
             sumStr += "======================\n";
 
             DateTime dt2 = DateTime.Now;
@@ -895,9 +898,10 @@ namespace SolidWorksAPI
             sumStr += "\n共(sec) : "+temp.ToString() + "秒 \n共(min) :" + temp2 + "分钟 \n";
             txtMsg.Text = sumStr;
 
-        
-
         }
+
+
+
         /// <summary>
         /// 获取CAM加工时间
         /// </summary>

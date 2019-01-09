@@ -75,7 +75,7 @@
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(685, 48);
             this.button5.TabIndex = 4;
-            this.button5.Text = "获取铣削特征";
+            this.button5.Text = "自动计算";
             this.button5.UseVisualStyleBackColor = true;
             this.button5.Click += new System.EventHandler(this.button5_Click);
             // 
