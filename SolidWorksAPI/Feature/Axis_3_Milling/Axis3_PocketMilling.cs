@@ -35,7 +35,7 @@ namespace SolidWorksAPI
             this.Length = Length;
             this.Width = Width;
             this.NoOfPlaces = NoOfPlaces;
-            this.No = 4; 
+            this.No = ChangeNo(); 
             this.FeedPer = 0.06;
             this.ReserveLength = 2;
             this._Materials = _Materials;
@@ -46,14 +46,24 @@ namespace SolidWorksAPI
             Calculate_CuttingTime();
             Calculate_TotalTime();
         }
-
+        /// <summary>
+        /// 根据刀具直径给定齿数
+        /// </summary>
+        /// <returns></returns>
+        public int ChangeNo()
+        {
+            if (this.Dia >= 10)
+                return 4;
+            else
+                return 2;
+        }
         /// <summary>
         /// 裁剪长度
         /// </summary>
         protected void Calculate_CuttingLength()
         {
             //(  ROUNDUP(M4/F4,0)   *  (L4-F4)+M4-F4)   *     ROUNDUP(N4/2,0)+N4
-            this.CuttingLength = (Math.Ceiling(this.Width / this.Dia) * (this.Length - this.Dia) + this.Width - this.Dia) * Math.Ceiling(this.Depth / 2) + this.Depth;
+            this.CuttingLength = (Math.Ceiling(this.Width / this.Dia) * (this.Length - this.Dia) + this.Width - this.Dia) * Math.Ceiling(this.Depth / 2) + this.Depth; 
         }
         /// <summary>
         /// 裁剪时间

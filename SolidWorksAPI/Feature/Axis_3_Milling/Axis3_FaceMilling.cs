@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace SolidWorksAPI
 {
     /// <summary>
-    /// 3轴 -- 腰形凹腔
+    /// 3轴 -- 面铣
     /// </summary>
-    public class Axis3_ClosedSlotMilling: Axis3Milling
+    public class Axis3_FaceMilling:Axis3Milling
     {
         /// <summary>
         /// 长度
@@ -28,16 +28,16 @@ namespace SolidWorksAPI
         /// </summary>
         private double CuttingLength { get; set; }
 
-        public Axis3_ClosedSlotMilling(double Dia, double Length, double Width, double Depth, int NoOfPlaces, Materials _Materials)
+        public Axis3_FaceMilling(double Dia, double Length, double Width, double Depth, int NoOfPlaces, Materials _Materials)
         {
             this.Dia = Dia;
             this.Depth = Depth;
             this.Length = Length;
             this.Width = Width;
             this.NoOfPlaces = NoOfPlaces;
-            this.No = ChangeNo(); 
-            this.FeedPer = 0.06;
-            this.ReserveLength = 2;
+            this.No = 4;
+            this.FeedPer = 0.1;
+            this.ReserveLength = 5;
             this._Materials = _Materials;
             this.CuttingSpeed = GetCuttingSpeed();
             Calculate_SpindleSpeed();
@@ -47,22 +47,12 @@ namespace SolidWorksAPI
             Calculate_TotalTime();
         }
         /// <summary>
-        /// 根据刀具直径给定齿数
-        /// </summary>
-        /// <returns></returns>
-        public int ChangeNo()
-        {
-            if (this.Dia >= 10)
-                return 4;
-            else
-                return 2;
-        }
-        /// <summary>
         /// 裁剪长度
         /// </summary>
         protected void Calculate_CuttingLength()
-        { 
-            this.CuttingLength = (3.14*(this.Width - this.Dia)+2*(this.Length - this.Width)+2*(this.ReserveLength + this.Depth)) * Math.Ceiling(this.Depth /1.5);
+        {
+            //this.CuttingLength = (this.Width / Math.Ceiling(this.Width / this.Dia) + this.Dia / 2 + this.Length * Math.Ceiling(this.Width / this.Dia)) * Math.Ceiling(this.Depth / 2);
+            this.CuttingLength = (this.Width / Math.Ceiling(this.Width / this.Dia) + this.Dia / 2 + this.Length * Math.Ceiling(this.Width / this.Dia)); //把切割次数去掉了   Math.Ceiling(this.Depth / 2)
         }
         /// <summary>
         /// 裁剪时间
@@ -106,11 +96,11 @@ namespace SolidWorksAPI
             switch (this._Materials)
             {
                 case Materials.Carbon:
-                    return 120;
+                    return 160;
                 case Materials.Alloy:
-                    return 100;
+                    return 160;
                 case Materials.Stainless:
-                    return 80;
+                    return 100;
                 case Materials.Aluminum:
                     return 200;
                 default:

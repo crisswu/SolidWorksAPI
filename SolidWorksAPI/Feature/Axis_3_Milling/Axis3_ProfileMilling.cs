@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace SolidWorksAPI
 {
     /// <summary>
-    /// 3轴 -- 腰形凹腔
+    /// 外轮廓粗铣
     /// </summary>
-    public class Axis3_ClosedSlotMilling: Axis3Milling
+    public class Axis3_ProfileMilling : Axis3Milling
     {
         /// <summary>
         /// 长度
@@ -27,17 +27,16 @@ namespace SolidWorksAPI
         /// 裁剪长度
         /// </summary>
         private double CuttingLength { get; set; }
-
-        public Axis3_ClosedSlotMilling(double Dia, double Length, double Width, double Depth, int NoOfPlaces, Materials _Materials)
+        public Axis3_ProfileMilling(double Dia, double Length, double Width, double Depth, int NoOfPlaces, Materials _Materials)
         {
             this.Dia = Dia;
             this.Depth = Depth;
             this.Length = Length;
             this.Width = Width;
             this.NoOfPlaces = NoOfPlaces;
-            this.No = ChangeNo(); 
-            this.FeedPer = 0.06;
-            this.ReserveLength = 2;
+            this.No = 4;
+            this.FeedPer = 0.1;
+            this.ReserveLength = 5;
             this._Materials = _Materials;
             this.CuttingSpeed = GetCuttingSpeed();
             Calculate_SpindleSpeed();
@@ -47,70 +46,49 @@ namespace SolidWorksAPI
             Calculate_TotalTime();
         }
         /// <summary>
-        /// 根据刀具直径给定齿数
-        /// </summary>
-        /// <returns></returns>
-        public int ChangeNo()
-        {
-            if (this.Dia >= 10)
-                return 4;
-            else
-                return 2;
-        }
-        /// <summary>
         /// 裁剪长度
         /// </summary>
         protected void Calculate_CuttingLength()
-        { 
-            this.CuttingLength = (3.14*(this.Width - this.Dia)+2*(this.Length - this.Width)+2*(this.ReserveLength + this.Depth)) * Math.Ceiling(this.Depth /1.5);
+        {
+            this.CuttingLength = Length + Width * 2;
         }
         /// <summary>
         /// 裁剪时间
         /// </summary>
         protected override void Calculate_CuttingTime()
         {
-            this.CuttingTime = (this.CuttingLength + this.ReserveLength) * this.NoOfPlaces * 60 / this.FeedRate;
+            this.CuttingTime = (this.CuttingLength + this.ReserveLength) * this.NoOfPlaces * 60 / this.FeedRate * 5;
         }
         /// <summary>
         /// 计算 进给速率
         /// </summary>
         protected override void Calculate_FeedRate()
         {
-            this.FeedRate = this.No * this.FeedPer * this.SpindleSpeed;
+            this.FeedRate = 500;
         }
         /// <summary>
         /// 计算 主轴转速
         /// </summary>
         protected override void Calculate_SpindleSpeed()
         {
-            if ((this.CuttingSpeed * 1000 / (this.Dia * 3.14) - 6500) >= 0)
-            {
-                this.SpindleSpeed = 6500;
-            }
-            else
-            {
-                this.SpindleSpeed = this.CuttingSpeed * 1000 / (this.Dia * 3.14);
-            }
+            this.SpindleSpeed = 4000;
         }
 
         protected override void Calculate_TotalTime()
         {
             this.TotalTime = this.AtcTime + this.OtherTime + this.CuttingTime;
         }
-        /// <summary>
-        /// 获取材料切割速度
-        /// </summary>
-        /// <returns></returns>
+
         protected override int GetCuttingSpeed()
         {
             switch (this._Materials)
             {
                 case Materials.Carbon:
-                    return 120;
+                    return 160;
                 case Materials.Alloy:
-                    return 100;
+                    return 160;
                 case Materials.Stainless:
-                    return 80;
+                    return 100;
                 case Materials.Aluminum:
                     return 200;
                 default:

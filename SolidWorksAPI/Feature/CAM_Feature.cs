@@ -30,13 +30,14 @@ namespace SolidWorksAPI
         /// <summary>
         /// 毛坯尺寸
         /// </summary>
-        private double[] StockSize = new double[3];
+        public double[] StockSize = new double[3];
 
         public CAM_Feature()
         {
           
         }
 
+        #region ===== 函数 =====
         /// <summary>
         /// 计算铣削总特征
         /// </summary>
@@ -94,7 +95,10 @@ namespace SolidWorksAPI
 
                 }
             }
-
+            GetSetFixture();//装夹时间
+            GetFaceMill();//面部粗铣
+            GetFaceMill();//面部粗铣
+            GetProfileMill();//外轮廓粗铣
         }
         /// <summary>
         /// 获取特征总金额 [要先执行 ComputeFeature 方法]
@@ -164,56 +168,7 @@ namespace SolidWorksAPI
         {
             return Materials.Aluminum;
         }
-        /// <summary>
-        /// 获取装夹时间[要先执行 ComputeFeature方法]
-        /// </summary>
-        /// <returns></returns>
-        public double GetSetFixture(List<SwCAM_Mill> list)
-        {
-            double MaxLenght = 0;//最大长度
-            foreach (SwCAM_Mill item in list)
-            {
-                if (item.Bound[0] > MaxLenght)
-                    MaxLenght = item.Bound[0];
-                if (item.Bound[1] > MaxLenght)
-                    MaxLenght = item.Bound[1];
-                if (item.Bound[2] > MaxLenght)
-                    MaxLenght = item.Bound[2];
-                if (item.Depth > MaxLenght)
-                    MaxLenght = item.Depth;
-            }
-
-            if (MaxLenght <= 300) //当最大长度 <300mm  每个面  * 30秒
-                return 30 * SetCount;
-            else if (MaxLenght > 300 && MaxLenght <= 500)
-                return 60 * SetCount;
-            else if (MaxLenght > 500 && MaxLenght <= 1000)
-                return 180 * SetCount;
-            else
-                return 600 * SetCount;
-        }
-        /// <summary>
-        /// 面部轮廓粗铣
-        /// </summary>
-        /// <returns></returns>
-        public double GetFaceRoughMill(List<SwCAM_Mill> list)
-        {
-            double time = 0;
-
-            //double[] bound = ConvertLWH(swCam.Bound, swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
-
-            //double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
-
-            //foreach (SwCAM_Mill item in list)
-            //{
-            //    if (item.FeatureName.IndexOf("面特征") >= 0)
-            //    {
-            //          Axis3_SurfaceRoughMilling arm = new Axis3_SurfaceRoughMilling(CutterTool,(bound[0] * bound[1]),)
-            //    }
-            //}
-
-            return time;
-        }
+        #endregion
 
         #region ===== 获取特征相关方法 =====
         /// <summary>
@@ -714,6 +669,61 @@ namespace SolidWorksAPI
                             obj.SubMultiStep.Add(sms);//追加 多阶 MS孔
                         }
                     }
+                    if (pMillFeat is ICWPatternFeature)
+                    {
+                        CWPatternFeature pf = (CWPatternFeature)pMillFeat;
+                        ICWDispatchCollection dc = (ICWDispatchCollection) pf.IGetEnumChildFeatures();
+                        for (int i = 0; i < dc.Count; i++)
+                        {
+                            ICWMultiStepFeature sf = dc.Item(i);
+                            int steps = sf.GetNumOfSteps();
+
+                            obj.SubMultiStep = new List<SwMultiStep>();
+                            for (int si = 0; si < steps; si++)
+                            {
+                                double minvalue = 0;
+                                double maxvalue = 0;
+                                double oddept = 0;
+                                double Conedepth = 0;
+                                object ppstart = null;
+                                object centor = null;
+                                bool apex;
+                                double angle;
+
+                                SwMultiStep sms = new SwMultiStep();//多阶类
+
+                                switch (sf.GetTypeAtStep(si))
+                                {
+                                    case (int)CWMultiStepType.CW_MULTISTEP_TORUS_STEP: //圆弧过度（环形）
+                                        sf.GetTorusParams(si, out minvalue, out maxvalue, out oddept, out ppstart, out centor);
+                                        sms.MultiSetpType = (int)CWMultiStepType.CW_MULTISTEP_TORUS_STEP;
+                                        sms.MultiSetpName = CWMultiStepType.CW_MULTISTEP_TORUS_STEP.ToString();
+                                        sms.Diameter = minvalue;
+                                        sms.Depth = oddept;
+                                        sms.Distance = maxvalue / 2; //找SW的特征参数 就发现 距离参数 这里的数值 X2了！所以要除掉 （不清楚是否CAM的BUG）
+                                        break;
+                                    case (int)CWMultiStepType.CW_MULTISTEP_CONE_STEP: //倒角（圆锥）
+                                        sf.GetConeParams(si, out minvalue, out maxvalue, out Conedepth, out oddept, out ppstart, out apex, out angle);
+                                        sms.MultiSetpType = (int)CWMultiStepType.CW_MULTISTEP_CONE_STEP;
+                                        sms.MultiSetpName = CWMultiStepType.CW_MULTISTEP_CONE_STEP.ToString();
+                                        sms.TopDiameter = maxvalue;
+                                        sms.MinorDiameter = minvalue;
+                                        sms.Depth = oddept;
+                                        sms.Angle = angle;
+                                        break;
+                                    case (int)CWMultiStepType.CW_MULTISTEP_CYLN_STEP: //圆柱
+                                        sf.GetCylParams(si, out minvalue, out oddept, out ppstart);
+                                        sms.MultiSetpType = (int)CWMultiStepType.CW_MULTISTEP_CYLN_STEP;
+                                        sms.MultiSetpName = CWMultiStepType.CW_MULTISTEP_CYLN_STEP.ToString();
+                                        sms.Diameter = minvalue;
+                                        sms.Depth = oddept;
+                                        break;
+                                }
+                                obj.SubMultiStep.Add(sms);//追加 多阶 MS孔
+                            }
+                        }
+
+                    }
                     #endregion
                     obj.Maxdiameter = atts[1];
                     break;
@@ -777,7 +787,7 @@ namespace SolidWorksAPI
 
         #region ===== 特征时间计算 =====
         /// <summary>
-        /// 获取[孔]计算金额
+        /// [孔]*
         /// </summary>
         private void GetFeature_Hole(SwCAM_Mill swCam)
         {
@@ -788,14 +798,14 @@ namespace SolidWorksAPI
             
              Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
              af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-            af.TotalTime = af.TotalTime * 3;// 增加点孔的时间！！ 翻倍~
+            af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
             double MachineMoney = GetMachineMoney();
               af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 获取[埋头孔]计算金额
+        /// [埋头孔]*
         /// </summary>
         private void GetFeature_HoleCtrsunk(SwCAM_Mill swCam)
         {
@@ -813,7 +823,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 获取[沉镗孔]计算金额
+        /// [沉镗孔]*
         /// </summary>
         private void GetFeature_HoleCtrbore(SwCAM_Mill swCam)
         {
@@ -825,19 +835,20 @@ namespace SolidWorksAPI
                 //镗孔 第一阶段 底孔
                 Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth,1, GetMaterials());
                 af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-               af.TotalTime = af.TotalTime * 3;// 增加点孔的时间！！ 翻倍~
+               af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
 
             //镗孔 第二阶段 镗孔
             Axis3_Drilling p2 = new Axis3_Drilling(swCam.Maxdiameter, swCam.BoreDepth, 1, GetMaterials());
                 af.TotalTime += p2.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+                af.TotalTime = af.TotalTime * 1.8;
 
-                double MachineMoney = GetMachineMoney();
+            double MachineMoney = GetMachineMoney();
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
                 TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 获取[MS孔]计算金额
+        /// [MS孔]*
         /// </summary>
         private void GetFeature_MSHole(SwCAM_Mill swCam)
         {
@@ -876,7 +887,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 矩形槽
+        /// 矩形槽*
         /// </summary>
         private void GetFeature_RectangleGroove(SwCAM_Mill swCam)
         {
@@ -938,7 +949,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 不规则槽
+        /// 不规则槽*
         /// </summary>
         private void GetFeature_AnomalyGroove(SwCAM_Mill swCam)
         {
@@ -1030,7 +1041,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 腰形凹腔
+        /// 腰形凹腔*
         /// </summary>
         private void GetFeature_KidneyPock(SwCAM_Mill swCam)
         {
@@ -1077,6 +1088,66 @@ namespace SolidWorksAPI
             af.Test_SingleTime = Math.Round(p.TotalTime, 0);
             af.Test_ProcessCount = proCount;
             af.Test_Dia = CutterTool;
+
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+
+            TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
+        /// 获取装夹时间
+        /// </summary>
+        public void GetSetFixture()
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = "装夹时间";
+            af._SwCAM = null;
+
+            double MaxLenght = StockSize[0];//最大长度
+
+            if (MaxLenght <= 300) //当最大长度 <300mm  每个面  * 30秒
+                af.TotalTime = 30 * SetCount;
+            else if (MaxLenght > 300 && MaxLenght <= 500)
+                af.TotalTime = 60 * SetCount;
+            else if (MaxLenght > 500 && MaxLenght <= 1000)
+                af.TotalTime = 180 * SetCount;
+            else
+                af.TotalTime = 600 * SetCount;
+
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+
+            TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
+        /// 面部粗铣
+        /// </summary>
+        public void GetFaceMill()
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = "面部粗铣";
+            af._SwCAM = null;
+
+            Axis3_FaceMilling p = new Axis3_FaceMilling(50, StockSize[0], StockSize[1],1, 1, GetMaterials());
+            af.TotalTime = p.TotalTime;
+
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+
+            TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
+        /// 轮廓粗铣
+        /// </summary>
+        /// <returns></returns>
+        public void GetProfileMill()
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = "轮廓粗铣";
+            af._SwCAM = null;
+
+            Axis3_ProfileMilling p = new Axis3_ProfileMilling(16, StockSize[0], StockSize[1], StockSize[2], 1, GetMaterials());
+            af.TotalTime = p.TotalTime;
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
