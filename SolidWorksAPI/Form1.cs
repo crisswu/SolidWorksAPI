@@ -866,38 +866,7 @@ namespace SolidWorksAPI
 
 
         }
-        //获取铣削特征
-        private void button5_Click(object sender, EventArgs e)
-        {
-            DateTime dt1 = DateTime.Now;
-
-            CAM_Feature cf = new CAM_Feature();
-            List<SwCAM_Mill> list = cf.GetFeatuer_Mill();
-            cf.ComputeFeature_Mill(list); //计算总特征
-            // decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
-             double time = cf.GetTotalTime();//加工总用时
-            int temp = Convert.ToInt32(Math.Round(time, 0));
-            double temp2 = Math.Round(time/60, 0);
-            string sumStr = "【获取铣削特征】\n";
-            foreach (FeatureAmount item in cf.TotalFeatureMoney)
-            {
-                if (item.FeatureName.IndexOf("装夹") >= 0) sumStr += "\n";
-                if (item.FeatureName.IndexOf("矩形槽") >= 0 || item.FeatureName.IndexOf("不规则槽") >= 0)
-                    sumStr += (item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 --------  单次时间：" + item.Test_SingleTime + "秒   走刀次数:" + item.Test_ProcessCount + "次   尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0],2)+ " * " + Math.Round(item._SwCAM.Bound[1],2) + " * " + Math.Round(item._SwCAM.Depth,2)+"]  刀具直径："+item.Test_Dia+" \n");
-                else
-                    sumStr += item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n";
-            }
-            sumStr += "======================\n\n";
-            sumStr += "毛坯尺寸(mm):[" + Math.Round(cf.StockSize[0], 2) + " * " + Math.Round(cf.StockSize[1], 2) + " * " + Math.Round(cf.StockSize[2], 2) + "] \n";
-
-            DateTime dt2 = DateTime.Now;
-            TimeSpan ts = dt2 - dt1;
-            sumStr += "程序用时:" + ts.Seconds + "秒";
-
-            sumStr += "\n共(sec) : "+temp.ToString() + "秒 \n共(min) :" + temp2 + "分钟 \n";
-            txtMsg.Text = sumStr;
-
-        }
+       
 
 
 
@@ -928,7 +897,6 @@ namespace SolidWorksAPI
 
         private void button7_Click(object sender, EventArgs e)
         {
- 
             CWApp cwApp = new CWApp();
             CWPartDoc cwPd = (CWPartDoc)cwApp.IGetActiveDoc();
             CWDoc cwDoc = (CWDoc)cwApp.IGetActiveDoc();
@@ -948,8 +916,6 @@ namespace SolidWorksAPI
                     break;
                 }
             }
-
-             
         }
 
         private void button8_Click(object sender, EventArgs e)
@@ -988,6 +954,43 @@ namespace SolidWorksAPI
 
             sumStr += "\n共(sec) : " + temp.ToString() + "秒 \n共(min) :" + temp2 + "分钟 \n";
             txtMsg.Text = sumStr;
+        }
+
+        //获取铣削特征
+        private void button5_Click(object sender, EventArgs e)
+        {
+            DateTime dt1 = DateTime.Now;
+
+            CAM_Feature cf = new CAM_Feature();
+            List<SwCAM_Mill> list = cf.GetFeatuer_Mill();
+            cf.ComputeFeature_Mill(list); //计算总特征
+                                          // decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
+            double time = cf.GetTotalTime();//加工总用时
+            int temp = Convert.ToInt32(Math.Round(time, 0));
+            double temp2 = Math.Round(time / 60, 0);
+            string sumStr = "【获取铣削特征】\n";
+            foreach (FeatureAmount item in cf.TotalFeatureMoney)
+            {
+                if (item.FeatureName.IndexOf("装夹") >= 0) sumStr += "\n";
+                if (item.FeatureName.IndexOf("矩形槽") >= 0 || item.FeatureName.IndexOf("不规则槽") >= 0)
+                    sumStr += (item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 --------  单次时间：" + item.Test_SingleTime + "秒   走刀次数:" + item.Test_ProcessCount + "次   尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]  刀具直径：" + item.Test_Dia + " \n");
+                else if (item.FeatureName.IndexOf("开放式凹腔") >= 0)
+                    sumStr += (item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 --------  粗铣单次时间：" + item.Test_SingleTime + "秒   走刀次数:" + item.Test_ProcessCount + "次   尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]  刀具直径：" + item.Test_Dia + " \n 岛屿数量:"+item.Test_IsLandCount+"  岛屿共耗时:"+item.Test_IsLandTime+ "秒  岛屿尺寸(mm):[" + Math.Round(item.Test_IsLandSize[0], 2) + " * " + Math.Round(item.Test_IsLandSize[1], 2) + " * " + Math.Round(item.Test_IsLandSize[2], 2) + "]  \n");
+                else if(item.FeatureName.IndexOf("组") >= 0)
+                    sumStr += item.FeatureName + "(X"+item._SwCAM.SubFeatureCount+"):   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n";
+                else
+                    sumStr += item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n";
+            }
+            sumStr += "======================\n\n";
+            sumStr += "毛坯尺寸(mm):[" + Math.Round(cf.StockSize[0], 2) + " * " + Math.Round(cf.StockSize[1], 2) + " * " + Math.Round(cf.StockSize[2], 2) + "] \n";
+
+            DateTime dt2 = DateTime.Now;
+            TimeSpan ts = dt2 - dt1;
+            sumStr += "程序用时:" + ts.Seconds + "秒";
+
+            sumStr += "\n共(sec) : " + temp.ToString() + "秒 \n共(min) :" + temp2 + "分钟 \n";
+            txtMsg.Text = sumStr;
+
         }
     }
 

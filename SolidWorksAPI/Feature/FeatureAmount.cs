@@ -35,6 +35,9 @@ namespace SolidWorksAPI
         public int Test_ProcessCount;//切削次数
         public double Test_SingleTime;//单次时间
         public double Test_Dia;//刀具直径
+        public double[] Test_IsLandSize;//岛屿尺寸
+        public double Test_IsLandTime;//岛屿耗时
+        public double Test_IsLandCount;//岛屿数量
 
     }
 }

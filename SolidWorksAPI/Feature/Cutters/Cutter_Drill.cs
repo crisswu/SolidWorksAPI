@@ -53,7 +53,7 @@ namespace SolidWorksAPI
         /// <returns></returns>
         public static double GetFinish(double aftherSize)
         {
-            if (aftherSize == 20)
+            if (aftherSize >= 20)
                 return 10;
             else
                 return 6;

@@ -79,6 +79,8 @@ namespace SolidWorksAPI
                             GetFeature_AnomalyGroove(item);//不规则槽
                         break;
                     case (int)CWVolumeType_e.CW_OPENPOCKET_VOLUME: //开放式凹腔 、周界-非封闭凹腔
+                        if (item.FeatureName.IndexOf("开放式凹腔") >= 0)
+                            GetFeature_OpenCavity(item);
                         break;
                     case (int)CWVolumeType_e.CW_BOSS_VOLUME://圆形凸台 
                         break;
@@ -167,6 +169,28 @@ namespace SolidWorksAPI
         public Materials GetMaterials()
         {
             return Materials.Aluminum;
+        }
+        /// <summary>
+        /// 获取岛屿的预估尺寸（单个岛屿）
+        /// </summary>
+        /// <returns></returns>
+        public double[] GetIsLandArea(double length,double width,int isLandCount)
+        {
+            switch (isLandCount)
+            {
+                case 1:
+                    return new double[] { length * 0.2 , width * 0.2  };// 1个岛屿 占有 20% 特征面积
+                case 2:
+                    return new double[] { length * 0.3 / isLandCount, width * 0.3 / isLandCount };// 2个岛屿 占有 30% 特征面积
+                case 3:
+                    return new double[] { length * 0.4 / isLandCount, width * 0.4 / isLandCount };// 3个岛屿 占有 40% 特征面积
+                case 4:
+                    return new double[] { length * 0.5 / isLandCount, width * 0.5 / isLandCount };// 4个岛屿 占有 50% 特征面积
+                case 5:
+                    return new double[] { length * 0.6 / isLandCount, width * 0.6 / isLandCount };// 5个岛屿 占有 60% 特征面积
+                default:
+                    return new double[] { length * 0.7 / isLandCount, width * 0.7 / isLandCount };// 大于5个岛屿最多只占有 70% 特征面积
+            }
         }
         #endregion
 
@@ -896,7 +920,7 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-           double[] bound = ConvertLWH(swCam.Bound,swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+            double[] bound = ConvertLWH(swCam.Bound,swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
 
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
             //槽铣
@@ -1095,7 +1119,52 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 获取装夹时间
+        /// 开放式凹腔
+        /// </summary>
+        /// <param name="swCam"></param>
+        private void GetFeature_OpenCavity(SwCAM_Mill swCam)
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = swCam.FeatureName;
+            af._SwCAM = swCam;
+            ///实现过程
+            double[] bound = ConvertLWH(swCam.Bound, swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+            double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
+
+            //面铣
+            Axis3_FaceMilling p = new Axis3_FaceMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
+            af.TotalTime = p.TotalTime;
+
+            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
+            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
+
+            double isLandTime = 0;
+            if (swCam.IslandCount > 0)//如果有岛屿
+            {
+                double[] lengthWidth = GetIsLandArea(bound[0], bound[1], swCam.IslandCount);//获取每个岛屿的 预估尺寸 长、宽
+
+                //槽铣(替代精铣)
+                Axis3_PocketMilling pm = new Axis3_PocketMilling(Cutter_Drill.GetFinish(CutterTool), lengthWidth[0], lengthWidth[1], bound[2], 1, GetMaterials());
+                isLandTime = pm.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);//防止出现 2个 开放式凹腔 出现组的情况。 正常下 只会是1
+                isLandTime *= swCam.IslandCount;
+
+                af.Test_IsLandCount = swCam.IslandCount;
+                af.Test_IsLandSize = new double[] { lengthWidth[0], lengthWidth[1], bound[2] };
+                af.Test_IsLandTime = Math.Round(isLandTime, 0);
+            }
+            af.TotalTime += isLandTime;
+
+            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
+            af.Test_ProcessCount = proCount;
+            af.Test_Dia = CutterTool; 
+
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+
+            TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
+        /// 获取装夹时间*
         /// </summary>
         public void GetSetFixture()
         {
@@ -1120,7 +1189,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 面部粗铣
+        /// 面部粗铣*
         /// </summary>
         public void GetFaceMill()
         {
@@ -1137,7 +1206,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 轮廓粗铣
+        /// 轮廓粗铣*
         /// </summary>
         /// <returns></returns>
         public void GetProfileMill()
