@@ -964,7 +964,7 @@ namespace SolidWorksAPI
             CAM_Feature cf = new CAM_Feature();
             List<SwCAM_Mill> list = cf.GetFeatuer_Mill();
             cf.ComputeFeature_Mill(list); //计算总特征
-                                          // decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
+             // decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
             double time = cf.GetTotalTime();//加工总用时
             int temp = Convert.ToInt32(Math.Round(time, 0));
             double temp2 = Math.Round(time / 60, 0);

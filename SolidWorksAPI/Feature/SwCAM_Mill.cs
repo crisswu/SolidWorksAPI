@@ -114,10 +114,6 @@ namespace SolidWorksAPI
 
         public double DistanceUptoStock { get; internal set; }
         /// <summary>
-        /// 岛屿
-        /// </summary>
-        public List<Island> Islands { get; internal set; }
-        /// <summary>
         /// 岛屿数量
         /// </summary>
         public int IslandCount { get; internal set; }

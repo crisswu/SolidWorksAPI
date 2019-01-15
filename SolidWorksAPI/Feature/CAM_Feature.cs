@@ -83,6 +83,7 @@ namespace SolidWorksAPI
                             GetFeature_OpenCavity(item);
                         break;
                     case (int)CWVolumeType_e.CW_BOSS_VOLUME://圆形凸台 
+                            GetFeature_CircularBoss(item);
                         break;
                     case (int)CWVolumeType_e.CW_SLAB_VOLUME: //面特征
                         break;
@@ -176,20 +177,47 @@ namespace SolidWorksAPI
         /// <returns></returns>
         public double[] GetIsLandArea(double length,double width,int isLandCount)
         {
+            double area = length * width;//求出总表面积
+            //switch (isLandCount)
+            //{
+            //    case 1:
+            //        return new double[] {  length * 0.2 / isLandCount, width * 0.2 / isLandCount  };// 1个岛屿 占有 20% 特征面积
+            //    case 2:
+            //        return new double[] { length * 0.3 / isLandCount, width * 0.3 / isLandCount };// 2个岛屿 占有 30% 特征面积
+            //    case 3:
+            //        return new double[] { length * 0.4 / isLandCount, width * 0.4 / isLandCount };// 3个岛屿 占有 40% 特征面积
+            //    case 4:
+            //        return new double[] { length * 0.5 / isLandCount, width * 0.5 / isLandCount };// 4个岛屿 占有 50% 特征面积
+            //    case 5:
+            //        return new double[] { length * 0.6 / isLandCount, width * 0.6 / isLandCount };// 5个岛屿 占有 60% 特征面积
+            //    default:
+            //        return new double[] { length * 0.7 / isLandCount, width * 0.7 / isLandCount };// 大于5个岛屿最多只占有 70% 特征面积
+            //}
             switch (isLandCount)
             {
                 case 1:
-                    return new double[] { length * 0.2 , width * 0.2  };// 1个岛屿 占有 20% 特征面积
+                    area = area * 0.2;//计算出所有岛屿占据特征的总表面积
+                    return new double[] { area / 10, 10 };// 1个岛屿 占有 20% 特征面积  固定宽度为10mm 长度为 表面积/宽度=长度
                 case 2:
-                    return new double[] { length * 0.3 / isLandCount, width * 0.3 / isLandCount };// 2个岛屿 占有 30% 特征面积
+                    area = area * 0.3;//计算出所有岛屿占据特征的总表面积
+                    area = area / isLandCount;//算出 每个岛屿的表面积
+                    return new double[] { area / 10, 10 };// 2个岛屿 占有 30% 特征面积
                 case 3:
-                    return new double[] { length * 0.4 / isLandCount, width * 0.4 / isLandCount };// 3个岛屿 占有 40% 特征面积
+                    area = area * 0.4;//计算出所有岛屿占据特征的总表面积
+                    area = area / isLandCount;//算出 每个岛屿的表面积
+                    return new double[] { area / 10, 10 };// 3个岛屿 占有 40% 特征面积
                 case 4:
-                    return new double[] { length * 0.5 / isLandCount, width * 0.5 / isLandCount };// 4个岛屿 占有 50% 特征面积
+                    area = area * 0.5;//计算出所有岛屿占据特征的总表面积
+                    area = area / isLandCount;//算出 每个岛屿的表面积
+                    return new double[] { area / 10, 10 };// 4个岛屿 占有 50% 特征面积
                 case 5:
-                    return new double[] { length * 0.6 / isLandCount, width * 0.6 / isLandCount };// 5个岛屿 占有 60% 特征面积
+                    area = area * 0.6;//计算出所有岛屿占据特征的总表面积
+                    area = area / isLandCount;//算出 每个岛屿的表面积
+                    return new double[] { area / 10, 10 };// 5个岛屿 占有 60% 特征面积
                 default:
-                    return new double[] { length * 0.7 / isLandCount, width * 0.7 / isLandCount };// 大于5个岛屿最多只占有 70% 特征面积
+                    area = area * 0.7;//计算出所有岛屿占据特征的总表面积
+                    area = area / isLandCount;//算出 每个岛屿的表面积
+                    return new double[] { area / 10, 10 };// 大于5个岛屿最多只占有 70% 特征面积
             }
         }
         #endregion
@@ -275,7 +303,6 @@ namespace SolidWorksAPI
 
                             if (pMillFeat.VolumeType == 4)
                             {
-
                                 //ICWTaperTool ssd = (ICWTaperTool)cwMach.IGetToolcrib();
                                 //ICWDispatchCollection ddd = (ICWDispatchCollection)cwMach.IGetToolcrib();
                                 //for (int u = 0; u < ddd.Count; u++)
@@ -283,12 +310,9 @@ namespace SolidWorksAPI
                                 //    object fsfs = ddd.Item(u);
 
                                 //}
-
                                 //ICWOperation op = (ICWOperation)pThisFeat.GetOperationList();
                                 //ICWTool col = (ICWTool)op.IGetTool();
                                 //ICWTaperTool tap = (ICWTaperTool)op.IGetTool();
-
-
                             }
 
                             double Distance = 0;
@@ -300,37 +324,28 @@ namespace SolidWorksAPI
                             ///======= 获取特征独有属性
                             SetVolumeType(pMillFeat.VolumeType, atts, pMillFeat, obj);
 
-                            List<Island> islands = new List<Island>();//获取岛屿
-                            ICWDispatchCollection islandCollection = pMillFeat.IGetIslands();
-                            object jjjj = pMillFeat.IGetIslands();
-                            if (pThisFeat.FeatureName == "矩形凹腔1")
-                            {
-                                int landCount = pMillFeat.IGetIslandCount();
-                                object objjjj = pMillFeat.IGetIslands();
+                            //List<Island> islands = new List<Island>();//获取岛屿
+                            //ICWDispatchCollection islandCollection = pMillFeat.IGetIslands();
+                            //object jjjj = pMillFeat.IGetIslands();
+                            //if (pThisFeat.FeatureName == "矩形凹腔1")
+                            //{
+                            //    int landCount = pMillFeat.IGetIslandCount();
+                            //    object objjjj = pMillFeat.IGetIslands();
 
-                                foreach (CWIslandInfo item in islandCollection)
-                                {
-                                    Island island = new Island();
-                                    island.Depth = item.GetDepth();
-                                    islands.Add(island);
-                                }
+                            //    foreach (CWIslandInfo item in islandCollection)
+                            //    {
+                            //        Island island = new Island();
+                            //        island.Depth = item.GetDepth();
+                            //        islands.Add(island);
+                            //    }
 
-                                for (int m = 0; m < islandCollection.Count; m++)
-                                {
-                                    object cc = islandCollection.Item(m);
-                                }
+                            //    for (int m = 0; m < islandCollection.Count; m++)
+                            //    {
+                            //        object cc = islandCollection.Item(m);
+                            //    }
 
-                            }
+                            //}
 
-
-                            foreach (CWIslandInfo item in islandCollection)
-                            {
-                                Island island = new Island();
-                                island.Depth = item.GetDepth();
-                                islands.Add(island);
-                            }
-
-                            obj.Islands = islands;
                             obj.IslandCount = pMillFeat.IGetIslandCount();
                             obj.ThroughOrblind = pMillFeat.SubType;
                             obj.CornerRadius = pMillFeat.IGetCornerRadius();
@@ -347,9 +362,6 @@ namespace SolidWorksAPI
                                 ////ti.BottomArcFaceHeight = obj.BottomRadius == 0 ? 0 : (obj.Depth - ti.TaperHeight - obj.Mindiameter);//（深度-锥度高-精加工半径）= 底部高度
 
                             }
-
-
-
                             if (pMillFeat.IsPatternFeature()) //获取组信息， 子列表
                             {
                                 //获取子特征
@@ -532,15 +544,6 @@ namespace SolidWorksAPI
 
                     ICWMillFeature pMillFeatitem = (CWMillFeature)item;
 
-                    List<Island> subislands = new List<Island>();
-                    ICWDispatchCollection subislandCollection = pMillFeatitem.IGetIslands();
-                    foreach (CWIslandInfo subitem in subislandCollection)
-                    {
-                        Island island = new Island();
-                        island.Depth = subitem.GetDepth();
-                        subislands.Add(island);
-                    }
-                    subobj.Islands = subislands;
                     subobj.IslandCount = pMillFeatitem.IGetIslandCount();
                     subobj.VolumeType = pMillFeatitem.VolumeType;
 
@@ -1164,6 +1167,33 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
+        /// 圆形凸台
+        /// </summary>
+        private void GetFeature_CircularBoss(SwCAM_Mill swCam)
+        {
+            FeatureAmount af = new FeatureAmount();
+            af.FeatureName = swCam.FeatureName;
+            af._SwCAM = swCam;
+            
+            double CutterTool = Cutter_Drill.GetPoked(swCam.Maxdiameter, swCam.Maxdiameter);//刀具
+
+            //外圆形铣削
+            Axis3_ExternalCircularMilling p = new Axis3_ExternalCircularMilling(CutterTool, swCam.Maxdiameter+CutterTool, swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
+            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+
+            int proCount = NumberOfWalkCut(swCam.Depth, CutterTool) + 1;
+            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
+
+            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
+            af.Test_ProcessCount = proCount;
+            af.Test_Dia = CutterTool;
+
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+
+            TotalFeatureMoney.Add(af);
+        }
+        /// <summary>
         /// 获取装夹时间*
         /// </summary>
         public void GetSetFixture()
@@ -1354,37 +1384,6 @@ namespace SolidWorksAPI
                             ///======= 获取特征独有属性
                             SetVolumeType(pMillFeat.VolumeType, atts, pMillFeat, obj);
 
-                            List<Island> islands = new List<Island>();//获取岛屿
-                            ICWDispatchCollection islandCollection = pMillFeat.IGetIslands();
-                            object jjjj = pMillFeat.IGetIslands();
-                            if (pThisFeat.FeatureName == "开放式凹腔1")
-                            {
-                                int landCount = pMillFeat.IGetIslandCount();
-                                object objjjj = pMillFeat.IGetIslands();
-
-                                foreach (CWIslandInfo item in islandCollection)
-                                {
-                                    Island island = new Island();
-                                    island.Depth = item.GetDepth();
-                                    islands.Add(island);
-                                }
-
-                                for (int m = 0; m < islandCollection.Count; m++)
-                                {
-                                    object cc = islandCollection.Item(m);
-                                }
-
-                            }
-
-
-                            foreach (CWIslandInfo item in islandCollection)
-                            {
-                                Island island = new Island();
-                                island.Depth = item.GetDepth();
-                                islands.Add(island);
-                            }
-
-                            obj.Islands = islands;
                             obj.IslandCount = pMillFeat.IGetIslandCount();
                             obj.ThroughOrblind = pMillFeat.SubType;
                             obj.CornerRadius = pMillFeat.IGetCornerRadius();
@@ -1401,8 +1400,6 @@ namespace SolidWorksAPI
                                 ////ti.BottomArcFaceHeight = obj.BottomRadius == 0 ? 0 : (obj.Depth - ti.TaperHeight - obj.Mindiameter);//（深度-锥度高-精加工半径）= 底部高度
 
                             }
-
-
 
                             if (pMillFeat.IsPatternFeature()) //获取组信息， 子列表
                             {
