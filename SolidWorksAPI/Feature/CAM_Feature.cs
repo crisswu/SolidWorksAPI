@@ -143,11 +143,9 @@ namespace SolidWorksAPI
         /// <param name="oldBound"></param>
         /// <param name="Depth"></param>
         /// <returns></returns>
-        public double[] ConvertLWH(double[] oldBound, double Depth)
+        public double[] ConvertLWH(double[] oldBound)
         {
             List<double> temp = oldBound.ToList();
-            if (Depth != -1000)
-                temp.Add(Depth);
             temp.Sort();
             temp.Reverse();//倒叙排列
             return temp.ToArray();
@@ -178,47 +176,73 @@ namespace SolidWorksAPI
         public double[] GetIsLandArea(double length,double width,int isLandCount)
         {
             double area = length * width;//求出总表面积
-            //switch (isLandCount)
-            //{
-            //    case 1:
-            //        return new double[] {  length * 0.2 / isLandCount, width * 0.2 / isLandCount  };// 1个岛屿 占有 20% 特征面积
-            //    case 2:
-            //        return new double[] { length * 0.3 / isLandCount, width * 0.3 / isLandCount };// 2个岛屿 占有 30% 特征面积
-            //    case 3:
-            //        return new double[] { length * 0.4 / isLandCount, width * 0.4 / isLandCount };// 3个岛屿 占有 40% 特征面积
-            //    case 4:
-            //        return new double[] { length * 0.5 / isLandCount, width * 0.5 / isLandCount };// 4个岛屿 占有 50% 特征面积
-            //    case 5:
-            //        return new double[] { length * 0.6 / isLandCount, width * 0.6 / isLandCount };// 5个岛屿 占有 60% 特征面积
-            //    default:
-            //        return new double[] { length * 0.7 / isLandCount, width * 0.7 / isLandCount };// 大于5个岛屿最多只占有 70% 特征面积
-            //}
             switch (isLandCount)
             {
                 case 1:
-                    area = area * 0.2;//计算出所有岛屿占据特征的总表面积
-                    return new double[] { area / 10, 10 };// 1个岛屿 占有 20% 特征面积  固定宽度为10mm 长度为 表面积/宽度=长度
-                case 2:
                     area = area * 0.3;//计算出所有岛屿占据特征的总表面积
-                    area = area / isLandCount;//算出 每个岛屿的表面积
-                    return new double[] { area / 10, 10 };// 2个岛屿 占有 30% 特征面积
-                case 3:
+                    return new double[] { area / 10, 10 };// 1个岛屿 占有 30% 特征面积  固定宽度为10mm 长度为 表面积/宽度=长度
+                case 2:
                     area = area * 0.4;//计算出所有岛屿占据特征的总表面积
                     area = area / isLandCount;//算出 每个岛屿的表面积
-                    return new double[] { area / 10, 10 };// 3个岛屿 占有 40% 特征面积
-                case 4:
+                    return new double[] { area / 10, 10 };// 2个岛屿 占有 40% 特征面积
+                case 3:
                     area = area * 0.5;//计算出所有岛屿占据特征的总表面积
                     area = area / isLandCount;//算出 每个岛屿的表面积
-                    return new double[] { area / 10, 10 };// 4个岛屿 占有 50% 特征面积
-                case 5:
+                    return new double[] { area / 10, 10 };// 3个岛屿 占有 50% 特征面积
+                case 4:
                     area = area * 0.6;//计算出所有岛屿占据特征的总表面积
                     area = area / isLandCount;//算出 每个岛屿的表面积
-                    return new double[] { area / 10, 10 };// 5个岛屿 占有 60% 特征面积
+                    return new double[] { area / 10, 10 };// 4个岛屿 占有 60% 特征面积
+                case 5:
+                    area = area * 0.65;//计算出所有岛屿占据特征的总表面积
+                    area = area / isLandCount;//算出 每个岛屿的表面积
+                    return new double[] { area / 10, 10 };// 5个岛屿 占有 65% 特征面积
                 default:
                     area = area * 0.7;//计算出所有岛屿占据特征的总表面积
                     area = area / isLandCount;//算出 每个岛屿的表面积
                     return new double[] { area / 10, 10 };// 大于5个岛屿最多只占有 70% 特征面积
             }
+        }
+        /// <summary>
+        /// 执行槽铣公共方法
+        /// </summary>
+        /// <param name="af">特征结果</param>
+        /// <param name="CutterTool">刀具直径</param>
+        /// <param name="bound">长宽高</param>
+        /// <param name="SubFeatureCount">子特征个数</param>
+        public void ExecutePocketMilling(FeatureAmount af, double CutterTool, double[] bound,int SubFeatureCount)
+        {
+            //槽铣
+            Axis3_PocketMilling p = new Axis3_PocketMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
+            af.TotalTime = p.TotalTime * (SubFeatureCount == 0 ? 1 : SubFeatureCount);
+
+            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
+            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
+
+            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
+            af.Test_ProcessCount = proCount;
+            af.Test_Dia = CutterTool;
+            af.Test_MethodName = "执行函数:PocketMilling";
+        }
+        /// <summary>
+        /// 执行槽铣周长切割公共方法
+        /// </summary>
+        /// <param name="af">特征结果</param>
+        /// <param name="CutterTool">刀具直径</param>
+        /// <param name="bound">长宽高</param>
+        /// <param name="SubFeatureCount">子特征个数</param>
+        public void ExecutePocketMilling_Through(FeatureAmount af, double CutterTool, double[] bound, int SubFeatureCount)
+        {
+            //槽铣按周长切割
+            Axis3_PocketMilling_Through p = new Axis3_PocketMilling_Through(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
+            af.TotalTime += p.TotalTime;
+            af.TotalTime = p.TotalTime * (SubFeatureCount == 0 ? 1 : SubFeatureCount);
+
+            int pc = NumberOfWalkCut(bound[2], CutterTool) + 1;
+            af.Test_SingleTime = Math.Round(p.TotalTime / pc, 0);
+            af.Test_ProcessCount = pc;
+            af.Test_Dia = CutterTool;
+            af.Test_MethodName = "执行函数:PocketMilling_Through";
         }
         #endregion
 
@@ -247,7 +271,7 @@ namespace SolidWorksAPI
                 ICWDoc3 a1 = (ICWDoc3)cwDoc;
                 double d1, d2, d3, d4, d5, d6;
                 a1.GetBoxRecordParams(out d1, out d2, out d3, out d4, out d5, out d6);
-                StockSize = ConvertLWH(new double[] { d4, d5, d6 }, -1000);//获取毛坯尺寸
+                StockSize = ConvertLWH(new double[] { d4, d5, d6 });//获取毛坯尺寸
 
                 if (cwDispCol.Count == 0)
                 {
@@ -295,7 +319,7 @@ namespace SolidWorksAPI
                             obj.Maxdiameter = atts[1];//直径
                             obj.BottomRadius = atts[20];//底部半径
                             obj.Mindiameter = atts[9];//精加工半径 
-                            obj.Bound = new double[] { atts[7], atts[8], atts[9] };//长、宽、高
+                            obj.Bound = new double[] { atts[7], atts[8], obj.Depth };//长、宽、高
 
                             //double[] stBound = { 0, 0, 0 };
                             //pMillFeat.GetBoundParams(out stBound[0], out stBound[1], out stBound[2]);
@@ -923,24 +947,25 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-            double[] bound = ConvertLWH(swCam.Bound,swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+            double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
 
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
-            //槽铣
-            Axis3_PocketMilling p = new Axis3_PocketMilling(CutterTool, bound[0], bound[1],bound[2], 1, GetMaterials());
-            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
 
-            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
-            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
-
-            af.Test_SingleTime = Math.Round(p.TotalTime,0);
-            af.Test_ProcessCount = proCount;
-            af.Test_Dia = CutterTool;
-
-
-            //精铣   EdgeRadius 棱角半径暂且给定 刀具半径
-            // Axis3_SurfaceFinishMilling fm = new Axis3_SurfaceFinishMilling(Cutter_Drill.GetFinish(CutterTool), Cutter_Drill.GetFinish(CutterTool) / 2, (bound[0] * bound[1]), 1.6, 1, GetMaterials());
-            // af.TotalTime += fm.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+            if (swCam.ThroughOrblind == 0)//未穿过 
+            {
+                ExecutePocketMilling(af,CutterTool,bound,swCam.SubFeatureCount);
+            }
+            else // 穿过..  则要修改切割算法,只算该特征的周长 （穿过则按切割处理）
+            {
+                // 如果 深度(自带未修改) > 长  或者  宽  则视为 坐标系错误  忽略 “穿过”属性
+                // 以及如果 深度 大于 “一定值” 值则直接操作 切割算法  例如 ：深度>20 则直接使用 ExecutePocketMilling_Through 
+                if ((swCam.Depth > swCam.Bound[0] || swCam.Depth > swCam.Bound[1]) && bound[2] <= 20)
+                {
+                    ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+                }
+                else
+                   ExecutePocketMilling_Through(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -956,7 +981,7 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             ///实现过程
-            double[] bound = ConvertLWH(swCam.Bound, swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+            double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
 
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
              
@@ -985,24 +1010,11 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-            double[] bound = ConvertLWH(swCam.Bound, swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+            double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
 
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
 
-            //槽铣
-            Axis3_PocketMilling p = new Axis3_PocketMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials()); 
-            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-
-            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
-            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
-
-            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
-            af.Test_ProcessCount = proCount;
-            af.Test_Dia = CutterTool;
-
-            //精铣   EdgeRadius 棱角半径暂且给定 刀具半径
-            //Axis3_SurfaceFinishMilling fm = new Axis3_SurfaceFinishMilling(Cutter_Drill.GetFinish(CutterTool), Cutter_Drill.GetFinish(CutterTool) / 2, (bound[0] * bound[1]), 1.6, 1, GetMaterials());
-            //af.TotalTime += fm.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+            ExecutePocketMilling(af,CutterTool,bound,swCam.SubFeatureCount);
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -1019,23 +1031,12 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-            double[] bound = ConvertLWH(swCam.Bound, swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+            double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
 
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
+
             //槽铣（依旧用矩形槽的方式做矩形凹腔）
-            Axis3_PocketMilling p = new Axis3_PocketMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
-            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-
-            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
-            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
-
-            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
-            af.Test_ProcessCount = proCount;
-            af.Test_Dia = CutterTool;
-
-            //精铣   EdgeRadius 棱角半径暂且给定 刀具半径
-            //Axis3_SurfaceFinishMilling fm = new Axis3_SurfaceFinishMilling(Cutter_Drill.GetFinish(CutterTool), Cutter_Drill.GetFinish(CutterTool) / 2, (bound[0] * bound[1] * bound[2]), 1.6, 1, GetMaterials());
-            //af.TotalTime += fm.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+            ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -1076,7 +1077,7 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             ///实现过程
-            double[] bound = ConvertLWH(swCam.Bound, swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+            double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
 
             Axis3_ClosedSlotMilling p = new Axis3_ClosedSlotMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
@@ -1102,19 +1103,10 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             ///实现过程
-            double[] bound = ConvertLWH(swCam.Bound, swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+            double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
 
-            //槽铣
-            Axis3_PocketMilling p = new Axis3_PocketMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
-            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-
-            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
-            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
-
-            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
-            af.Test_ProcessCount = proCount;
-            af.Test_Dia = CutterTool;
+            ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -1131,7 +1123,7 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             ///实现过程
-            double[] bound = ConvertLWH(swCam.Bound, swCam.Depth);//因为有坐标系所以 要自动按大小 分配 长 宽 高
+            double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
 
             //面铣
@@ -1280,7 +1272,7 @@ namespace SolidWorksAPI
                 ICWDoc3 a1 = (ICWDoc3)cwApp.IGetActiveDoc();
                 double d1, d2, d3, d4, d5, d6;
                 a1.GetBoxRecordParams(out d1, out d2, out d3, out d4, out d5, out d6);
-                StockSize = ConvertLWH(new double[] { d4, d5, d6 }, -1000);//获取毛坯尺寸
+                StockSize = ConvertLWH(new double[] { d4, d5, d6 });//获取毛坯尺寸
 
                 if (cwDispCol.Count == 0)
                 {

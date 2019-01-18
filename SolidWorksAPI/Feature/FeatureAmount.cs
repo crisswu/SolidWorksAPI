@@ -38,6 +38,7 @@ namespace SolidWorksAPI
         public double[] Test_IsLandSize;//岛屿尺寸
         public double Test_IsLandTime;//岛屿耗时
         public double Test_IsLandCount;//岛屿数量
+        public string Test_MethodName = "";//执行方法名
 
     }
 }

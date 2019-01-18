@@ -9,7 +9,7 @@ namespace SolidWorksAPI
     /// <summary>
     /// 3轴 -- 矩形槽,腔
     /// </summary>
-    public class Axis3_PocketMilling : Axis3Milling
+    public class Axis3_PocketMilling_Through : Axis3Milling
     {
         /// <summary>
         /// 长度
@@ -27,12 +27,8 @@ namespace SolidWorksAPI
         /// 裁剪长度
         /// </summary>
         private double CuttingLength { get; set; }
-        /// <summary>
-        /// 走刀次数
-        /// </summary>
-        public int CutterCount { get; set; }
 
-        public Axis3_PocketMilling(double Dia,double Length,double Width,double Depth, int NoOfPlaces, Materials _Materials)
+        public Axis3_PocketMilling_Through(double Dia,double Length,double Width,double Depth, int NoOfPlaces, Materials _Materials)
         {
             this.Dia = Dia;
             this.Depth = Depth;
@@ -51,17 +47,6 @@ namespace SolidWorksAPI
             Calculate_TotalTime();
         }
         /// <summary>
-        /// 裁剪次数 （深度/刀具直径*0.25）
-        /// </summary>
-        /// <returns></returns>
-        private int NumberOfWalkCut(double Depth, double Dia)
-        {
-            double cutTools = Dia * 0.25;//算出刀具每次的切割深度
-            double sumWalk = Depth / cutTools;//换算出 总共需要走多少次
-             CutterCount = Convert.ToInt32(Math.Ceiling(sumWalk)) ;//获取最大整数  例： 3.1 = 4
-            return CutterCount;
-        }
-        /// <summary>
         /// 根据刀具直径给定齿数
         /// </summary>
         /// <returns></returns>
@@ -73,13 +58,23 @@ namespace SolidWorksAPI
                 return 2;
         }
         /// <summary>
+        /// 裁剪次数 （深度/刀具直径*0.25）
+        /// </summary>
+        /// <returns></returns>
+        private int NumberOfWalkCut(double Depth, double Dia)
+        {
+            double cutTools = Dia * 0.25;//算出刀具每次的切割深度
+            double sumWalk = Depth / cutTools;//换算出 总共需要走多少次
+            double Cei = Math.Ceiling(sumWalk);//获取最大整数  例： 3.1 = 4
+            return Convert.ToInt32(Cei)+1;
+        }
+        /// <summary>
         /// 裁剪长度
         /// </summary>
         protected void Calculate_CuttingLength()
         {
-            //(  ROUNDUP(M4/F4,0)   *  (L4-F4)+M4-F4)   *     ROUNDUP(N4/2,0)+N4
-            this.CuttingLength = (Math.Ceiling(this.Width / this.Dia) * (this.Length - this.Dia) + this.Width - this.Dia) * Math.Ceiling(this.Depth / 2) + this.Depth; 
-           // this.CuttingLength = (Math.Ceiling(this.Width / this.Dia) * (this.Length - this.Dia) + this.Width - this.Dia) * NumberOfWalkCut(this.Depth,this.Dia) + this.Depth;
+            //  求出 周长 计算出 切割次数。 获得 裁剪长度   ( - this.Width 操作是因为“穿过槽”一定是有个口是开放的  所以不会是4个面都需要切割 ，切割面只会是3面或者2面)
+            this.CuttingLength = ((this.Length + this.Width) * 2 - this.Width - this.Dia) * NumberOfWalkCut(this.Depth, this.Dia);
         }
         /// <summary>
         /// 裁剪时间

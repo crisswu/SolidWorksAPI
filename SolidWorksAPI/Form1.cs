@@ -929,6 +929,10 @@ namespace SolidWorksAPI
             //f.list = list;
             //f.ShowDialog();
 
+            //精铣   EdgeRadius 棱角半径暂且给定 刀具半径
+            //Axis3_SurfaceFinishMilling fm = new Axis3_SurfaceFinishMilling(Cutter_Drill.GetFinish(CutterTool), Cutter_Drill.GetFinish(CutterTool) / 2, (bound[0] * bound[1] * bound[2]), 1.6, 1, GetMaterials());
+            //af.TotalTime += fm.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+
         }
         //特征刀轨二合一
         private void button2_Click_1(object sender, EventArgs e)
@@ -959,6 +963,9 @@ namespace SolidWorksAPI
         //获取铣削特征
         private void button5_Click(object sender, EventArgs e)
         {
+            txtMsg.Text = "";
+            Application.DoEvents();
+
             DateTime dt1 = DateTime.Now;
 
             CAM_Feature cf = new CAM_Feature();
@@ -968,29 +975,98 @@ namespace SolidWorksAPI
             double time = cf.GetTotalTime();//加工总用时
             int temp = Convert.ToInt32(Math.Round(time, 0));
             double temp2 = Math.Round(time / 60, 0);
-            string sumStr = "【获取铣削特征】\n";
+            string sumStr = "";
             foreach (FeatureAmount item in cf.TotalFeatureMoney)
             {
                 if (item.FeatureName.IndexOf("装夹") >= 0) sumStr += "\n";
-                if (item.FeatureName.IndexOf("矩形槽") >= 0 || item.FeatureName.IndexOf("不规则槽") >= 0)
-                    sumStr += (item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 --------  单次时间：" + item.Test_SingleTime + "秒   走刀次数:" + item.Test_ProcessCount + "次   尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]  刀具直径：" + item.Test_Dia + " \n");
+                if (item.FeatureName.IndexOf("矩形槽") >= 0 || item.FeatureName.IndexOf("不规则槽") >= 0 || item.FeatureName.IndexOf("不规则凹腔") >= 0 || item.FeatureName.IndexOf("矩形凹腔") >= 0)
+                {
+                    sumStr += "┏┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┓\n";
+                    string isCg = item._SwCAM.ThroughOrblind == 0 ? "否" : "是";
+                    sumStr += ("┣  【" + item.FeatureName + "】: " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 "+ GetMin(Convert.ToInt32(Math.Round(item.TotalTime, 0))) + "\n" +
+                          "┣  单次时间：" + item.Test_SingleTime + "秒\n" +
+                          "┣  走刀次数:" + item.Test_ProcessCount + "次\n" +
+                          "┣  尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]\n" +
+                          "┣  刀具直径：" + item.Test_Dia + "\n"+
+                          "┣  穿过:" + isCg + " \n" +
+                          "┣  组:X" + item._SwCAM.SubFeatureCount + " \n" +
+                          "┣  " + item.Test_MethodName + " \n");
+                    sumStr += "┗┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┛\n";
+                }
                 else if (item.FeatureName.IndexOf("开放式凹腔") >= 0)
-                    sumStr += (item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 --------  粗铣单次时间：" + item.Test_SingleTime + "秒   走刀次数:" + item.Test_ProcessCount + "次   尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]  刀具直径：" + item.Test_Dia + " \n 岛屿数量:"+item.Test_IsLandCount+"  岛屿共耗时:"+item.Test_IsLandTime+ "秒  岛屿尺寸(mm):[" + Math.Round(item.Test_IsLandSize[0], 2) + " * " + Math.Round(item.Test_IsLandSize[1], 2) + " * " + Math.Round(item.Test_IsLandSize[2], 2) + "]  \n");
-                else if(item.FeatureName.IndexOf("组") >= 0)
-                    sumStr += item.FeatureName + "(X"+item._SwCAM.SubFeatureCount+"):   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n";
+                {
+                    sumStr += "┏┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┓\n";
+                    sumStr += ("┣  【" + item.FeatureName + "】: " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 " + GetMin(Convert.ToInt32(Math.Round(item.TotalTime, 0))) + "\n" +
+                           "┣  粗铣单次时间：" + item.Test_SingleTime + "秒\n"+
+                           "┣  走刀次数:" + item.Test_ProcessCount + "次\n"+
+                           "┣  尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]\n"+
+                           "┣  刀具直径：" + item.Test_Dia + " \n"+
+                           "┣  岛屿数量:" + item.Test_IsLandCount + "\n"+
+                           "┣  岛屿共耗时:" + item.Test_IsLandTime + "秒\n"+
+                           "┣  岛屿尺寸(mm):[" + Math.Round(item.Test_IsLandSize[0], 2) + " * " + Math.Round(item.Test_IsLandSize[1], 2) + " * " + Math.Round(item.Test_IsLandSize[2], 2) + "]  \n"+
+                           "┣  组:X" + item._SwCAM.SubFeatureCount + " \n");
+                    sumStr += "┗┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┛\n";
+                }
+                else if (item.FeatureName.IndexOf("MS") >= 0)
+                {
+                    sumStr += "┏┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┓\n";
+                    sumStr += "┣  【" + item.FeatureName + "(X" + item._SwCAM.SubFeatureCount + ")】: " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 " + GetMin(Convert.ToInt32(Math.Round(item.TotalTime, 0))) + "\n";
+                    sumStr += "┣   阶梯数目:" + item._SwCAM.SubMultiStep.Count + "\n";
+                    sumStr += "┣   深度:" + Math.Round(item._SwCAM.Depth, 2) + "\n";
+                    sumStr += "┣   组:X" + item._SwCAM.SubFeatureCount + "\n";
+                    sumStr += "┗┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┛\n";
+                }
+                else if (item.FeatureName.IndexOf("孔") >= 0)
+                {
+                    sumStr += "┏┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┓\n";
+                    sumStr += "┣  【" + item.FeatureName + "(X" + item._SwCAM.SubFeatureCount + ")】: " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 " + GetMin(Convert.ToInt32(Math.Round(item.TotalTime, 0))) + "\n";
+                    sumStr += "┣   直径:" + Math.Round(item._SwCAM.Maxdiameter,2) + "\n";
+                    sumStr += "┣   深度:" + Math.Round(item._SwCAM.Depth, 2) + "\n";
+                    sumStr += "┣   组:X" + item._SwCAM.SubFeatureCount + "\n";
+                    sumStr += "┗┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┛\n";
+                }
                 else
+                {
                     sumStr += item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n";
+                }
             }
             sumStr += "======================\n\n";
-            sumStr += "毛坯尺寸(mm):[" + Math.Round(cf.StockSize[0], 2) + " * " + Math.Round(cf.StockSize[1], 2) + " * " + Math.Round(cf.StockSize[2], 2) + "] \n";
+           
 
             DateTime dt2 = DateTime.Now;
             TimeSpan ts = dt2 - dt1;
-            sumStr += "程序用时:" + ts.Seconds + "秒";
+            string HeadStr = "【计算铣削特征时间】\n程序用时:" + ts.Seconds + "秒\n共(sec) : " + temp.ToString() + "秒 \n共(min) :" + temp2 + "分钟 \n";
+            if (txtTime.Text != "" && txtTime.Text != "0")
+            {
+                double wc = 0;
+                if (Convert.ToDouble(txtTime.Text)> temp2)
+                    wc = temp2 / Convert.ToDouble(txtTime.Text) * 100;
+                else
+                    wc = Convert.ToDouble(txtTime.Text) / temp2 * 100;
+                HeadStr += "准确率:" + Math.Round(wc, 2) + "%\n\n";
 
-            sumStr += "\n共(sec) : " + temp.ToString() + "秒 \n共(min) :" + temp2 + "分钟 \n";
+
+                //double wc1 = 0;
+                //if (Convert.ToDouble(txtTime.Text) > temp2)
+                //    double wc1 = temp / Convert.ToDouble(txtTime.Text)*60 * 100;
+                //if (wc1 > 100)
+                //    wc1 = (Convert.ToDouble(txtTime.Text) * 60) / temp  * 100;
+                //HeadStr += "准确率:" + Math.Round(wc1, 2) + "%\n\n";
+            }
+            HeadStr += "毛坯尺寸(mm):[" + Math.Round(cf.StockSize[0], 2) + " * " + Math.Round(cf.StockSize[1], 2) + " * " + Math.Round(cf.StockSize[2], 2) + "] \n";
+            sumStr = HeadStr + sumStr;
             txtMsg.Text = sumStr;
 
+        }
+
+        public string GetMin(int sec)
+        {
+            if (sec.ToString().Length <= 2)
+                return "";
+            else
+            {
+                return "("+(sec / 60) + "分钟)";
+            }
         }
     }
 
