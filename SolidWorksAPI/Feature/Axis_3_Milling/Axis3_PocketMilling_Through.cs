@@ -26,7 +26,7 @@ namespace SolidWorksAPI
         /// <summary>
         /// 裁剪长度
         /// </summary>
-        private double CuttingLength { get; set; }
+        public double CuttingLength { get; set; }
 
         public Axis3_PocketMilling_Through(double Dia,double Length,double Width,double Depth, int NoOfPlaces, Materials _Materials)
         {

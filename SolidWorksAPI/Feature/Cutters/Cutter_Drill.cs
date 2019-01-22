@@ -29,15 +29,31 @@ namespace SolidWorksAPI
         /// <returns></returns>
         public static double GetPoked(double length,double width)
         {
-            if (length > 20 && width > 20)
+            if (length >= 100 && width > 20)
                 return 20;
+            else if (length >= 100 && width < 20)
+            {
+                if (width > 16)
+                    return 16;
+                else if (width > 10)
+                    return 10;
+                else
+                    return 6;
+            }
             else
             {
-                if (length > 16 && width > 16)
+                if (length > 50 && width > 16)
                     return 16;
+                else if (length > 50 && width < 16)
+                {
+                    if (width > 10)
+                        return 10;
+                    else
+                        return 6;
+                }
                 else
                 {
-                    if (length > 10 && width > 10)
+                    if (length > 30 && width > 10)
                         return 10;
                     else
                     {

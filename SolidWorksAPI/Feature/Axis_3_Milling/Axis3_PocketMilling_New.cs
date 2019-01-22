@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace SolidWorksAPI
 {
     /// <summary>
-    /// 3轴 -- 矩形槽,腔
+    /// 3轴 -- 矩形槽,腔 （自更改裁剪长度算法）
     /// </summary>
-    public class Axis3_PocketMilling : Axis3Milling
+    public class Axis3_PocketMilling_New : Axis3Milling
     {
         /// <summary>
         /// 长度
@@ -32,7 +32,7 @@ namespace SolidWorksAPI
         /// </summary>
         public int CutterCount { get; set; }
 
-        public Axis3_PocketMilling(double Dia,double Length,double Width,double Depth, int NoOfPlaces, Materials _Materials)
+        public Axis3_PocketMilling_New(double Dia,double Length,double Width,double Depth, int NoOfPlaces, Materials _Materials)
         {
             this.Dia = Dia;
             this.Depth = Depth;
@@ -54,11 +54,11 @@ namespace SolidWorksAPI
         /// 裁剪次数 （深度/刀具直径*0.25）
         /// </summary>
         /// <returns></returns>
-        private int NumberOfWalkCut(double Depth, double Dia)
+        private int NumberOfWalkCut()
         {
             double cutTools = Dia * 0.25;//算出刀具每次的切割深度
             double sumWalk = Depth / cutTools;//换算出 总共需要走多少次
-             CutterCount = Convert.ToInt32(Math.Ceiling(sumWalk)) ;//获取最大整数  例： 3.1 = 4
+             CutterCount = Convert.ToInt32(Math.Ceiling(sumWalk))+1 ;//获取最大整数  例： 3.1 = 4
             return CutterCount;
         }
         /// <summary>
@@ -77,9 +77,9 @@ namespace SolidWorksAPI
         /// </summary>
         protected void Calculate_CuttingLength()
         {
-            //(  ROUNDUP(M4/F4,0)   *  (L4-F4)+M4-F4)   *     ROUNDUP(N4/2,0)+N4
-            this.CuttingLength = (Math.Ceiling(this.Width / this.Dia) * (this.Length - this.Dia) + this.Width - this.Dia) * Math.Ceiling(this.Depth / 2) + this.Depth; 
-           // this.CuttingLength = (Math.Ceiling(this.Width / this.Dia) * (this.Length - this.Dia) + this.Width - this.Dia) * NumberOfWalkCut(this.Depth,this.Dia) + this.Depth;
+            // (Length - Dia)= 长度，两边刀具半径+起来就是1个刀具直径，
+            //this.Width / (this.Dia * 0.9) = 计算重叠率，保留刀具直径 10%，
+            this.CuttingLength =  (Length - Dia) * Math.Ceiling(this.Width / (this.Dia * 0.7)) * NumberOfWalkCut();
         }
         /// <summary>
         /// 裁剪时间
@@ -93,7 +93,7 @@ namespace SolidWorksAPI
         /// </summary>
         protected override void Calculate_FeedRate()
         {
-            this.FeedRate = this.No * this.FeedPer * this.SpindleSpeed;
+            this.FeedRate = 200; //this.No * this.FeedPer * this.SpindleSpeed;
         }
         /// <summary>
         /// 计算 主轴转速

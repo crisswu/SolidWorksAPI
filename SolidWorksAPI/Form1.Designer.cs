@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.button1 = new System.Windows.Forms.Button();
             this.button3 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
@@ -74,9 +75,9 @@
             // 
             // button5
             // 
-            this.button5.Location = new System.Drawing.Point(289, 7);
+            this.button5.Location = new System.Drawing.Point(327, 7);
             this.button5.Name = "button5";
-            this.button5.Size = new System.Drawing.Size(397, 48);
+            this.button5.Size = new System.Drawing.Size(547, 48);
             this.button5.TabIndex = 4;
             this.button5.Text = "自动计算";
             this.button5.UseVisualStyleBackColor = true;
@@ -84,7 +85,7 @@
             // 
             // button6
             // 
-            this.button6.Location = new System.Drawing.Point(692, 8);
+            this.button6.Location = new System.Drawing.Point(904, 326);
             this.button6.Name = "button6";
             this.button6.Size = new System.Drawing.Size(187, 46);
             this.button6.TabIndex = 5;
@@ -154,7 +155,7 @@
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("宋体", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.label2.Location = new System.Drawing.Point(229, 16);
+            this.label2.Location = new System.Drawing.Point(240, 16);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(54, 27);
             this.label2.TabIndex = 12;
@@ -164,7 +165,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(889, 780);
+            this.ClientSize = new System.Drawing.Size(888, 780);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtTime);
@@ -178,9 +179,9 @@
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button1);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "SDSC";
             this.ResumeLayout(false);
             this.PerformLayout();
 

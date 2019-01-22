@@ -206,7 +206,6 @@ namespace SolidWorksAPI
             int goTime = dt3.Seconds;
             MessageBox.Show(goTime.ToString() + "秒");
         }
-
         #region 扩展
         /// <summary>
         /// 有无待核算体
@@ -866,10 +865,6 @@ namespace SolidWorksAPI
 
 
         }
-       
-
-
-
         /// <summary>
         /// 获取CAM加工时间
         /// </summary>
@@ -922,6 +917,7 @@ namespace SolidWorksAPI
         {
             CAM_Feature cf = new CAM_Feature();
             List<SwCAM_Turn> list = cf.GetFeatuer_Turn();
+
             //cf.ComputeFeature(list); //计算总特征
             // decimal moneys = cf.GetTotalMoney();//得出最后的成本核算价
             // double time = cf.GetTotalTime();//加工总用时
@@ -986,6 +982,7 @@ namespace SolidWorksAPI
                     sumStr += ("┣  【" + item.FeatureName + "】: " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 "+ GetMin(Convert.ToInt32(Math.Round(item.TotalTime, 0))) + "\n" +
                           "┣  单次时间：" + item.Test_SingleTime + "秒\n" +
                           "┣  走刀次数:" + item.Test_ProcessCount + "次\n" +
+                          "┣  裁剪长度:" + item.Test_CuttingLength + "mm\n" +
                           "┣  尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]\n" +
                           "┣  刀具直径：" + item.Test_Dia + "\n"+
                           "┣  穿过:" + isCg + " \n" +
@@ -1030,28 +1027,18 @@ namespace SolidWorksAPI
                     sumStr += item.FeatureName + ":   " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒\n";
                 }
             }
-            sumStr += "======================\n\n";
-           
 
             DateTime dt2 = DateTime.Now;
             TimeSpan ts = dt2 - dt1;
             string HeadStr = "【计算铣削特征时间】\n程序用时:" + ts.Seconds + "秒\n共(sec) : " + temp.ToString() + "秒 \n共(min) :" + temp2 + "分钟 \n";
             if (txtTime.Text != "" && txtTime.Text != "0")
             {
-                double wc = 0;
-                if (Convert.ToDouble(txtTime.Text)> temp2)
-                    wc = temp2 / Convert.ToDouble(txtTime.Text) * 100;
+                double wc1 = 0;
+                if (Convert.ToDouble(txtTime.Text) > temp2)
+                     wc1 = temp / (Convert.ToDouble(txtTime.Text) * 60) * 100;
                 else
-                    wc = Convert.ToDouble(txtTime.Text) / temp2 * 100;
-                HeadStr += "准确率:" + Math.Round(wc, 2) + "%\n\n";
-
-
-                //double wc1 = 0;
-                //if (Convert.ToDouble(txtTime.Text) > temp2)
-                //    double wc1 = temp / Convert.ToDouble(txtTime.Text)*60 * 100;
-                //if (wc1 > 100)
-                //    wc1 = (Convert.ToDouble(txtTime.Text) * 60) / temp  * 100;
-                //HeadStr += "准确率:" + Math.Round(wc1, 2) + "%\n\n";
+                    wc1 = (Convert.ToDouble(txtTime.Text) * 60) / temp * 100;
+                HeadStr += "准确率:" + Math.Round(wc1, 2) + "%\n\n";
             }
             HeadStr += "毛坯尺寸(mm):[" + Math.Round(cf.StockSize[0], 2) + " * " + Math.Round(cf.StockSize[1], 2) + " * " + Math.Round(cf.StockSize[2], 2) + "] \n";
             sumStr = HeadStr + sumStr;
@@ -1065,7 +1052,8 @@ namespace SolidWorksAPI
                 return "";
             else
             {
-                return "("+(sec / 60) + "分钟)";
+                double min = Math.Round((Convert.ToDouble(sec) / 60), 1);
+                return "("+ min + "分钟)";
             }
         }
     }

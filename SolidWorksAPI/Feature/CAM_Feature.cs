@@ -44,6 +44,11 @@ namespace SolidWorksAPI
         /// <param name="swCAM"></param>
         public void ComputeFeature_Mill(List<SwCAM_Mill> swCAMs)
         {
+            GetSetFixture();//装夹时间
+            GetFaceMill();//面部粗铣
+            GetFaceMill();//面部粗铣
+            GetProfileMill();//外轮廓粗铣
+
             foreach (SwCAM_Mill item in swCAMs)
             {
                 switch (item.VolumeType)
@@ -98,10 +103,6 @@ namespace SolidWorksAPI
 
                 }
             }
-            GetSetFixture();//装夹时间
-            GetFaceMill();//面部粗铣
-            GetFaceMill();//面部粗铣
-            GetProfileMill();//外轮廓粗铣
         }
         /// <summary>
         /// 获取特征总金额 [要先执行 ComputeFeature 方法]
@@ -213,16 +214,14 @@ namespace SolidWorksAPI
         public void ExecutePocketMilling(FeatureAmount af, double CutterTool, double[] bound,int SubFeatureCount)
         {
             //槽铣
-            Axis3_PocketMilling p = new Axis3_PocketMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
+            Axis3_PocketMilling_New p = new Axis3_PocketMilling_New(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
             af.TotalTime = p.TotalTime * (SubFeatureCount == 0 ? 1 : SubFeatureCount);
 
-            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
-            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
-
-            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
-            af.Test_ProcessCount = proCount;
+            af.Test_SingleTime = Math.Round(p.TotalTime / p.CutterCount, 0);
+            af.Test_ProcessCount = p.CutterCount;
             af.Test_Dia = CutterTool;
-            af.Test_MethodName = "执行函数:PocketMilling";
+            af.Test_MethodName = "执行函数:PocketMilling_New";
+            af.Test_CuttingLength = p.CuttingLength;
         }
         /// <summary>
         /// 执行槽铣周长切割公共方法
@@ -243,6 +242,42 @@ namespace SolidWorksAPI
             af.Test_ProcessCount = pc;
             af.Test_Dia = CutterTool;
             af.Test_MethodName = "执行函数:PocketMilling_Through";
+            af.Test_CuttingLength = p.CuttingLength;
+        }
+        /// <summary>
+        /// 执行矩形凹腔周长切割公共方法
+        /// </summary>
+        /// <param name="af">特征结果</param>
+        /// <param name="CutterTool">刀具直径</param>
+        /// <param name="bound">长宽高</param>
+        /// <param name="SubFeatureCount">子特征个数</param>
+        public void ExecuteRectangleCavity_Through(FeatureAmount af, double CutterTool, double[] bound, int SubFeatureCount)
+        {
+            //槽铣按周长切割
+            Axis3_RectangleCavity_Through p = new Axis3_RectangleCavity_Through(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
+            af.TotalTime = p.TotalTime * (SubFeatureCount == 0 ? 1 : SubFeatureCount);
+
+            af.Test_SingleTime = Math.Round(p.TotalTime / p.CutterCount, 0);
+            af.Test_ProcessCount = p.CutterCount;
+            af.Test_Dia = CutterTool;
+            af.Test_MethodName = "执行函数:RectangleCavity_Through";
+            af.Test_CuttingLength = p.CuttingLength;
+        }
+        /// <summary>
+        /// 执行开口槽 腰形
+        /// </summary>
+        public void ExecuteOpenSlotMilling(FeatureAmount af, double CutterTool, double[] bound, int SubFeatureCount)
+        {
+            Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
+            af.TotalTime = p.TotalTime * (SubFeatureCount == 0 ? 1 : SubFeatureCount);
+
+            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
+            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
+
+            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
+            af.Test_ProcessCount = proCount;
+            af.Test_Dia = CutterTool;
+            af.Test_MethodName = "执行函数:OpenSlotMilling";
         }
         #endregion
 
@@ -849,9 +884,9 @@ namespace SolidWorksAPI
             
              Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
              af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-            af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
-            double MachineMoney = GetMachineMoney();
-              af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+             af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
+             double MachineMoney = GetMachineMoney();
+             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
             TotalFeatureMoney.Add(af);
         }
@@ -984,17 +1019,8 @@ namespace SolidWorksAPI
             double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
 
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
-             
 
-            Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
-            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-
-            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
-            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
-
-            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
-            af.Test_ProcessCount = proCount;
-            af.Test_Dia = CutterTool;
+            ExecuteOpenSlotMilling(af, CutterTool, bound, swCam.SubFeatureCount);
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -1035,8 +1061,22 @@ namespace SolidWorksAPI
 
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
 
-            //槽铣（依旧用矩形槽的方式做矩形凹腔）
-            ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            if (swCam.ThroughOrblind == 0)//未穿过 
+            {
+                ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
+            else // 穿过..  则要修改切割算法,只算该特征的周长 （穿过则按切割处理）
+            {
+                // 如果 深度(自带未修改) > 长  或者  宽  则视为 坐标系错误  忽略 “穿过”属性
+                // 以及如果 深度 大于 “一定值” 值则直接操作 切割算法  例如 ：深度>20 则直接使用 ExecutePocketMilling_Through 
+                if ((swCam.Depth > swCam.Bound[0] || swCam.Depth > swCam.Bound[1]) && bound[2] <= 20)
+                {
+                    ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+                }
+                else
+                    ExecuteRectangleCavity_Through(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
+
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -1054,15 +1094,7 @@ namespace SolidWorksAPI
             ///实现过程
 
             //使用腰形槽的方式，长宽 使用 直径来代替
-            Axis3_OpenSlotMilling p = new Axis3_OpenSlotMilling(Cutter_Drill.GetCirclePock(swCam.Maxdiameter), swCam.Maxdiameter, swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
-            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-
-            int proCount = NumberOfWalkCut(swCam.Depth, Cutter_Drill.GetCirclePock(swCam.Maxdiameter)) + 1;
-            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
-
-            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
-            af.Test_ProcessCount = proCount;
-            af.Test_Dia = Cutter_Drill.GetCirclePock(swCam.Maxdiameter);
+            ExecuteOpenSlotMilling(af, Cutter_Drill.GetCirclePock(swCam.Maxdiameter), new double[] { swCam.Maxdiameter, swCam.Maxdiameter, swCam.Depth }, swCam.SubFeatureCount);
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
