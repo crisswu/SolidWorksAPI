@@ -42,6 +42,7 @@ namespace SolidWorksAPI
         public double Test_CuttingLength;//裁剪长度
         public double Test_FeedRate;//进给率
         public double Test_CutteDepth;//下刀深度
+        public double Test_CuttingSpeed;//材料切割速率
 
     }
 }

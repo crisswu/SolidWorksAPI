@@ -101,7 +101,7 @@ namespace SolidWorksAPI
         /// 获取材料切割速度
         /// </summary>
         /// <returns></returns>
-        protected override int GetCuttingSpeed()
+        protected override double GetCuttingSpeed()
         {
             switch (this._Materials)
             {

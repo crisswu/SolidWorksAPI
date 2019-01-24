@@ -86,7 +86,7 @@ namespace SolidWorksAPI
         /// </summary>
         protected override void Calculate_CuttingTime()
         {
-            this.CuttingTime = (this.CuttingLength + this.ReserveLength) * this.NoOfPlaces * 60 / this.FeedRate;
+            this.CuttingTime = (this.CuttingLength + this.ReserveLength) * this.NoOfPlaces * 60 / (this.FeedRate * this.CuttingSpeed);
         }
         /// <summary>
         /// 计算 进给速率
@@ -94,7 +94,7 @@ namespace SolidWorksAPI
         protected override void Calculate_FeedRate()
         {
             //进给率根据 刀具的直径 给出 进给率
-            Cutter_Drill.Pocket_FeedRate(this.Dia);
+           this.FeedRate = Cutter_Drill.Pocket_FeedRate(this.Dia);
         }
         /// <summary>
         /// 计算 主轴转速
@@ -119,20 +119,20 @@ namespace SolidWorksAPI
         /// 获取材料切割速度
         /// </summary>
         /// <returns></returns>
-        protected override int GetCuttingSpeed()
+        protected override double GetCuttingSpeed()
         {
             switch (this._Materials)
             {
                 case Materials.Carbon:
-                    return 120;
+                    return 0.6;
                 case Materials.Alloy:
-                    return 100;
+                    return 0.5;
                 case Materials.Stainless:
-                    return 80;
+                    return 0.4;
                 case Materials.Aluminum:
-                    return 200;
+                    return 1;
                 default:
-                    return 200;
+                    return 1;
             }
         }
     }

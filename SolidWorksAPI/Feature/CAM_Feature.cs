@@ -224,6 +224,7 @@ namespace SolidWorksAPI
             af.Test_CuttingLength = p.CuttingLength;
             af.Test_FeedRate = p.FeedRate;
             af.Test_CutteDepth = p.GetDepthOfCut();
+            af.Test_CuttingSpeed = p.CuttingSpeed;
         }
         /// <summary>
         /// 执行槽铣周长切割公共方法
@@ -266,6 +267,7 @@ namespace SolidWorksAPI
             af.Test_CuttingLength = p.CuttingLength;
             af.Test_FeedRate = p.FeedRate;
             af.Test_CutteDepth = p.GetDepthOfCut();
+            af.Test_CuttingSpeed = p.CuttingSpeed;
         }
         /// <summary>
         /// 执行开口槽 腰形

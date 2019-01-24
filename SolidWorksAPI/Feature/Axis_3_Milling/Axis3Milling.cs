@@ -22,7 +22,7 @@ namespace SolidWorksAPI
         /// <summary>
         /// 裁剪速度
         /// </summary>
-        public int CuttingSpeed { get; set; }
+        public double CuttingSpeed { get; set; }
         /// <summary>
         ///  每分钟走刀量
         /// </summary>
@@ -67,7 +67,7 @@ namespace SolidWorksAPI
         /// 获取材料切割速度
         /// </summary>
         /// <returns></returns>
-        protected abstract int GetCuttingSpeed();
+        protected abstract double GetCuttingSpeed();
         /// <summary>
         /// 加工时间合计
         /// </summary>

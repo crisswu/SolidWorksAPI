@@ -987,6 +987,7 @@ namespace SolidWorksAPI
                           "┣  刀具直径：" + item.Test_Dia + "mm\n"+
                           "┣  下刀深度：" + item.Test_CutteDepth + "mm\n" +
                           "┣  进给率：" + item.Test_FeedRate + "(mm/min)\n" +
+                          "┣  材料切割速率：" + item.Test_CuttingSpeed + "倍\n" +
                           "┣  穿过:" + isCg + " \n" +
                           "┣  组:X" + item._SwCAM.SubFeatureCount + " \n" +
                           "┣  尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]\n" +

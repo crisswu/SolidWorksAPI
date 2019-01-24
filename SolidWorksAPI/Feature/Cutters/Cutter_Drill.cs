@@ -50,13 +50,13 @@ namespace SolidWorksAPI
                 case 16:
                     return 4;
                 case 12:
-                    return 2.5;
+                    return 3;
                 case 10:
-                    return 2;
+                    return 2.5;
                 case 6:
-                    return 1;
+                    return 1.5;
                 case 3:
-                    return 0.5;
+                    return 0.75;
                 default:
                     return -1000;
             }
@@ -70,15 +70,17 @@ namespace SolidWorksAPI
             switch (Convert.ToInt32(Dia))
             {
                 case 20:
-                    return 135; 
+                    return 400; 
                 case 16:
-                    return 120;
+                    return 200;
                 case 12:
-                    return 250;
+                    return 230;
                 case 10:
-                   return 115; 
+                   return 200; 
                 case 6:
-                    return 100; 
+                    return 150;
+                case 3:
+                    return 100;
                 default:
                     return -1000;
             }

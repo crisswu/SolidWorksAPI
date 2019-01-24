@@ -95,7 +95,7 @@ namespace SolidWorksAPI
             this.TotalTime = this.AtcTime + this.OtherTime + this.CuttingTime;
         }
 
-        protected override int GetCuttingSpeed()
+        protected override double GetCuttingSpeed()
         { 
             switch (this._Materials)
             {

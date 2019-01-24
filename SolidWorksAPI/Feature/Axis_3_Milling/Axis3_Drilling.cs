@@ -39,7 +39,7 @@ namespace SolidWorksAPI
         /// 获取材料切割速度
         /// </summary>
         /// <returns></returns>
-        protected override int GetCuttingSpeed()
+        protected override double GetCuttingSpeed()
         {
             ///碳钢40 不锈钢30 铝合金80
             switch (this._Materials)
