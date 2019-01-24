@@ -222,6 +222,8 @@ namespace SolidWorksAPI
             af.Test_Dia = CutterTool;
             af.Test_MethodName = "执行函数:PocketMilling_New";
             af.Test_CuttingLength = p.CuttingLength;
+            af.Test_FeedRate = p.FeedRate;
+            af.Test_CutteDepth = p.GetDepthOfCut();
         }
         /// <summary>
         /// 执行槽铣周长切割公共方法
@@ -262,6 +264,8 @@ namespace SolidWorksAPI
             af.Test_Dia = CutterTool;
             af.Test_MethodName = "执行函数:RectangleCavity_Through";
             af.Test_CuttingLength = p.CuttingLength;
+            af.Test_FeedRate = p.FeedRate;
+            af.Test_CutteDepth = p.GetDepthOfCut();
         }
         /// <summary>
         /// 执行开口槽 腰形

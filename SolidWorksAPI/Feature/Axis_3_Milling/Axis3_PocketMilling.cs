@@ -9,7 +9,7 @@ namespace SolidWorksAPI
     /// <summary>
     /// 3轴 -- 矩形槽,腔
     /// </summary>
-    public class Axis3_PocketMilling : Axis3Milling
+    public class Axis3_PocketMilling : Axis3Milling,ICutte
     {
         /// <summary>
         /// 长度
@@ -22,7 +22,7 @@ namespace SolidWorksAPI
         /// <summary>
         /// 深度
         /// </summary>
-        private double Depth { get; set; }
+        public double Depth { get; set; }
         /// <summary>
         /// 裁剪长度
         /// </summary>
@@ -54,11 +54,11 @@ namespace SolidWorksAPI
         /// 裁剪次数 （深度/刀具直径*0.25）
         /// </summary>
         /// <returns></returns>
-        private int NumberOfWalkCut(double Depth, double Dia)
+        public int NumberOfWalkCut()
         {
-            double cutTools = Dia * 0.25;//算出刀具每次的切割深度
+            double cutTools = this.GetDepthOfCut();//每次的切割深度
             double sumWalk = Depth / cutTools;//换算出 总共需要走多少次
-             CutterCount = Convert.ToInt32(Math.Ceiling(sumWalk)) ;//获取最大整数  例： 3.1 = 4
+            CutterCount = Convert.ToInt32(Math.Ceiling(sumWalk)) + 1;//获取最大整数  例： 3.1 = 4
             return CutterCount;
         }
         /// <summary>

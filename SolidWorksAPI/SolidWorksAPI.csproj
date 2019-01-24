@@ -96,6 +96,7 @@
     <Compile Include="Feature\Axis_3_Milling\Axis3_ProfileMilling.cs" />
     <Compile Include="Feature\Axis_3_Milling\Axis3_SurfaceFinishMilling.cs" />
     <Compile Include="Feature\Axis_3_Milling\Axis3_SurfaceRoughMilling.cs" />
+    <Compile Include="Feature\Axis_3_Milling\ICutte.cs" />
     <Compile Include="Feature\CAM_Feature.cs" />
     <Compile Include="Debug.cs" />
     <Compile Include="Feature\Cutters\Cutter_Drill.cs" />

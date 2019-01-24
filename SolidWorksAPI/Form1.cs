@@ -982,11 +982,14 @@ namespace SolidWorksAPI
                     sumStr += ("┣  【" + item.FeatureName + "】: " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 "+ GetMin(Convert.ToInt32(Math.Round(item.TotalTime, 0))) + "\n" +
                           "┣  单次时间：" + item.Test_SingleTime + "秒\n" +
                           "┣  走刀次数:" + item.Test_ProcessCount + "次\n" +
-                          "┣  裁剪长度:" + item.Test_CuttingLength + "mm\n" +
-                          "┣  尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]\n" +
-                          "┣  刀具直径：" + item.Test_Dia + "\n"+
+                          "┣  裁剪单长度:" + Math.Round(item.Test_CuttingLength/ item.Test_ProcessCount,1) + "mm\n" +
+                          "┣  裁剪总长度:" + item.Test_CuttingLength + "mm\n" +
+                          "┣  刀具直径：" + item.Test_Dia + "mm\n"+
+                          "┣  下刀深度：" + item.Test_CutteDepth + "mm\n" +
+                          "┣  进给率：" + item.Test_FeedRate + "(mm/min)\n" +
                           "┣  穿过:" + isCg + " \n" +
                           "┣  组:X" + item._SwCAM.SubFeatureCount + " \n" +
+                          "┣  尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]\n" +
                           "┣  " + item.Test_MethodName + " \n");
                     sumStr += "┗┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┛\n";
                 }
@@ -996,11 +999,11 @@ namespace SolidWorksAPI
                     sumStr += ("┣  【" + item.FeatureName + "】: " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 " + GetMin(Convert.ToInt32(Math.Round(item.TotalTime, 0))) + "\n" +
                            "┣  粗铣单次时间：" + item.Test_SingleTime + "秒\n"+
                            "┣  走刀次数:" + item.Test_ProcessCount + "次\n"+
-                           "┣  尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]\n"+
                            "┣  刀具直径：" + item.Test_Dia + " \n"+
                            "┣  岛屿数量:" + item.Test_IsLandCount + "\n"+
                            "┣  岛屿共耗时:" + item.Test_IsLandTime + "秒\n"+
                            "┣  岛屿尺寸(mm):[" + Math.Round(item.Test_IsLandSize[0], 2) + " * " + Math.Round(item.Test_IsLandSize[1], 2) + " * " + Math.Round(item.Test_IsLandSize[2], 2) + "]  \n"+
+                           "┣  尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]\n" +
                            "┣  组:X" + item._SwCAM.SubFeatureCount + " \n");
                     sumStr += "┗┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┛\n";
                 }

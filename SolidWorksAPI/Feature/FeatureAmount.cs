@@ -40,6 +40,8 @@ namespace SolidWorksAPI
         public double Test_IsLandCount;//岛屿数量
         public string Test_MethodName = "";//执行方法名
         public double Test_CuttingLength;//裁剪长度
+        public double Test_FeedRate;//进给率
+        public double Test_CutteDepth;//下刀深度
 
     }
 }

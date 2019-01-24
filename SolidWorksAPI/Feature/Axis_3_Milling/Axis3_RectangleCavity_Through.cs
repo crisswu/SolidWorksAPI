@@ -9,7 +9,7 @@ namespace SolidWorksAPI
     /// <summary>
     /// 3轴 -- 矩形凹腔--周长切割
     /// </summary>
-    public class Axis3_RectangleCavity_Through : Axis3Milling
+    public class Axis3_RectangleCavity_Through : Axis3Milling,ICutte
     {
         /// <summary>
         /// 长度
@@ -22,7 +22,7 @@ namespace SolidWorksAPI
         /// <summary>
         /// 深度
         /// </summary>
-        private double Depth { get; set; }
+        public double Depth { get; set; }
         /// <summary>
         /// 裁剪长度
         /// </summary>
@@ -65,12 +65,11 @@ namespace SolidWorksAPI
         /// 裁剪次数 （深度/刀具直径*0.25）
         /// </summary>
         /// <returns></returns>
-        private int NumberOfWalkCut()
+        public int NumberOfWalkCut()
         {
-            double cutTools = this.Dia * 0.25;//算出刀具每次的切割深度
-            double sumWalk = this.Depth / cutTools;//换算出 总共需要走多少次
-            double Cei = Math.Ceiling(sumWalk);//获取最大整数  例： 3.1 = 4
-            CutterCount = Convert.ToInt32(Cei)+1;
+            double cutTools = this.GetDepthOfCut();//每次的切割深度
+            double sumWalk = Depth / cutTools;//换算出 总共需要走多少次
+            CutterCount = Convert.ToInt32(Math.Ceiling(sumWalk)) + 1;//获取最大整数  例： 3.1 = 4
             return CutterCount;
         }
         /// <summary>
@@ -93,7 +92,8 @@ namespace SolidWorksAPI
         /// </summary>
         protected override void Calculate_FeedRate()
         {
-            this.FeedRate = 121.3;//this.No * this.FeedPer * this.SpindleSpeed;
+            //进给率根据 刀具的直径 给出 进给率
+            Cutter_Drill.Pocket_FeedRate(this.Dia);
         }
         /// <summary>
         /// 计算 主轴转速

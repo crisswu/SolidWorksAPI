@@ -85,5 +85,14 @@ namespace SolidWorksAPI
         /// </summary>
         protected abstract void Calculate_CuttingTime();
 
+        /// <summary>
+        /// 获取每次下刀的切割深度(mm)
+        /// </summary>
+        /// <returns></returns>
+        public virtual double GetDepthOfCut()
+        {
+            return Cutter_Drill.GetDepthOfCut(this.Dia);
+        }
+
     }
 }
