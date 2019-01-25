@@ -24,7 +24,7 @@ namespace SolidWorksAPI
         /// <returns></returns>
         public static double GetPoked(double length,double width)
         {
-            if (width > 200)  
+            if (width > 200) 
                 return 20;
             else if (width >= 80) //200-80 = 16
                 return 16;
@@ -76,7 +76,7 @@ namespace SolidWorksAPI
                 case 12:
                     return 230;
                 case 10:
-                   return 200; 
+                    return 200; 
                 case 6:
                     return 150;
                 case 3:
