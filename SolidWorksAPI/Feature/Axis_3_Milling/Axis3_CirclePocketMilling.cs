@@ -7,18 +7,14 @@ using System.Threading.Tasks;
 namespace SolidWorksAPI
 {
     /// <summary>
-    /// 3轴 -- 矩形槽,腔 （自更改裁剪长度算法）
+    /// 3轴 -- 圆形凹腔
     /// </summary>
-    public class Axis3_PocketMilling_New : Axis3Milling,ICutte
+    public class Axis3_CirclePocketMilling : Axis3Milling,ICutte
     {
         /// <summary>
-        /// 长度
+        /// 特征直径
         /// </summary>
-        private double Length { get; set; }
-        /// <summary>
-        /// 宽度
-        /// </summary>
-        private double Width { get; set; }
+        private double FeatureDia { get; set; }
         /// <summary>
         /// 深度
         /// </summary>
@@ -32,13 +28,12 @@ namespace SolidWorksAPI
         /// </summary>
         public int CutterCount { get; set; }
 
-        public Axis3_PocketMilling_New(double Dia,double Length,double Width,double Depth, int NoOfPlaces, Materials _Materials)
+        public Axis3_CirclePocketMilling(double Dia,double FeatureDia,double Depth, Materials _Materials)
         {
             this.Dia = Dia;
             this.Depth = Depth;
-            this.Length = Length;
-            this.Width = Width;
-            this.NoOfPlaces = NoOfPlaces;
+            this.FeatureDia = FeatureDia;
+            this.NoOfPlaces = 1;
             this.No = ChangeNo(); 
             this.FeedPer = 0.06;
             this.ReserveLength = 2;
@@ -77,16 +72,41 @@ namespace SolidWorksAPI
         /// </summary>
         protected void Calculate_CuttingLength()
         {
-            // (Length - Dia)= 长度，两边刀具半径+起来就是1个刀具直径，
-            //this.Width / (this.Dia * 0.7) = 计算重叠率，保留刀具直径 70%，
-            this.CuttingLength =  (Length - Dia) * Math.Ceiling(this.Width / (this.Dia * 0.7)) * NumberOfWalkCut();
+            this.CuttingLength = Recursion(this.FeatureDia,0) * NumberOfWalkCut();
+        }
+
+        /// <summary>
+        /// 递归计算切割长度
+        /// </summary>
+        /// <param name="resDia">剩余直径</param>
+        /// <param name="cuttingLength">已切割的长度</param>
+        /// <returns></returns>
+        private double Recursion(double resDia,double cuttingLength)
+        {
+            if (resDia <= this.Dia) // 如果特征直径 小于刀具直径 则计算最后一次 后返回总长度
+            {
+                if (resDia > (Dia / 2))
+                {
+                    cuttingLength += resDia - (Dia / 2) * 3.14;// 外直径 减掉 刀具半径 计算周长
+                    return cuttingLength;
+                }
+                else
+                    return cuttingLength;
+            }
+            else
+            {
+                cuttingLength += resDia - (Dia / 2) * 3.14;// 外直径 减掉 刀具半径 计算周长
+                resDia = resDia - Dia * 0.7;//每次 直径缩小至 刀具 直径的70% 为重叠率
+                return Recursion(resDia, cuttingLength);
+            }
+
         }
         /// <summary>
         /// 裁剪时间
         /// </summary>
         protected override void Calculate_CuttingTime()
         {
-            this.CuttingTime = (this.CuttingLength + this.ReserveLength) * this.NoOfPlaces * 60 / (this.FeedRate * this.CuttingSpeed);
+            this.CuttingTime = this.CuttingLength * 60 / (this.FeedRate * this.CuttingSpeed);
         }
         /// <summary>
         /// 计算 进给速率

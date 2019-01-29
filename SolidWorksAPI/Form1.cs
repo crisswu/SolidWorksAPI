@@ -975,7 +975,8 @@ namespace SolidWorksAPI
             foreach (FeatureAmount item in cf.TotalFeatureMoney)
             {
                 if (item.FeatureName.IndexOf("装夹") >= 0) sumStr += "\n";
-                if (item.FeatureName.IndexOf("矩形槽") >= 0 || item.FeatureName.IndexOf("不规则槽") >= 0 || item.FeatureName.IndexOf("不规则凹腔") >= 0 || item.FeatureName.IndexOf("矩形凹腔") >= 0)
+                if (item.FeatureName.IndexOf("矩形槽") >= 0 || item.FeatureName.IndexOf("不规则槽") >= 0 || item.FeatureName.IndexOf("不规则凹腔") >= 0 ||
+                    item.FeatureName.IndexOf("矩形凹腔") >= 0 || item.FeatureName.IndexOf("腰型") >= 0 || item.FeatureName.IndexOf("圆形凹腔") >= 0)
                 {
                     sumStr += "┏┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┓\n";
                     string isCg = item._SwCAM.ThroughOrblind == 0 ? "否" : "是";

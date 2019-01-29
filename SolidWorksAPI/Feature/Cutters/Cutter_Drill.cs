@@ -43,23 +43,26 @@ namespace SolidWorksAPI
         /// <returns></returns>
         public static double GetDepthOfCut(double Dia)
         {
-            switch (Convert.ToInt32(Dia))
-            {
-                case 20:
-                    return 5;
-                case 16:
-                    return 4;
-                case 12:
-                    return 3;
-                case 10:
-                    return 2.5;
-                case 6:
-                    return 1.5;
-                case 3:
-                    return 0.75;
-                default:
-                    return -1000;
-            }
+            return (Dia * 0.25);
+            #region old
+            //switch (Convert.ToInt32(Dia))
+            //{
+            //    case 20:
+            //        return 5;
+            //    case 16:
+            //        return 4;
+            //    case 12:
+            //        return 3;
+            //    case 10:
+            //        return 2.5;
+            //    case 6:
+            //        return 1.5;
+            //    case 3:
+            //        return 0.75;
+            //    default:
+            //        return -1000;
+            //}
+            #endregion
         }
         /// <summary>
         /// 获取槽铣刀的进给速率
@@ -72,15 +75,15 @@ namespace SolidWorksAPI
                 case 20:
                     return 400; 
                 case 16:
-                    return 200;
+                    return 300;
                 case 12:
-                    return 230;
+                    return 250;
                 case 10:
-                    return 200; 
+                    return 250; 
                 case 6:
-                    return 150;
+                    return 200;
                 case 3:
-                    return 100;
+                    return 150;
                 default:
                     return -1000;
             }
@@ -101,7 +104,7 @@ namespace SolidWorksAPI
         }
 
         /// <summary>
-        /// 获取槽铣刀
+        /// 获取圆形铣刀
         /// </summary>
         /// <param name="diameter"></param>
         /// <returns></returns>

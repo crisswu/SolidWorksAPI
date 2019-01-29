@@ -1000,7 +1000,9 @@ namespace SolidWorksAPI
             {
                 // 如果 深度(自带未修改) > 长  或者  宽  则视为 坐标系错误  忽略 “穿过”属性
                 // 以及如果 深度 大于 “一定值” 值则直接操作 切割算法  例如 ：深度>20 则直接使用 ExecutePocketMilling_Through 
-                if ((swCam.Depth > swCam.Bound[0] || swCam.Depth > swCam.Bound[1]) && bound[2] <= 20)
+                //  || swCam.Depth > swCam.Bound[1])  把这个判断去掉了。。 允许 深度大于宽度。。
+                // 这里 要么舍弃 错误的坐标系 按照 穿透来分析， 要么舍弃  深度>长度的零件，【这里舍弃了 深度大于长度的特征，则按照正常计算】
+                if (swCam.Depth > swCam.Bound[0] && bound[2] <= 20)
                 {
                     ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
                 }
@@ -1014,7 +1016,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 腰形槽
+        /// 腰形槽*
         /// </summary>
         private void GetFeature_KidneySlot(SwCAM_Mill swCam)
         {
@@ -1026,7 +1028,24 @@ namespace SolidWorksAPI
 
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
 
-            ExecuteOpenSlotMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            //ExecuteOpenSlotMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            if (swCam.ThroughOrblind == 0)//未穿过 
+            {
+                ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
+            else // 穿过..  则要修改切割算法,只算该特征的周长 （穿过则按切割处理）
+            {
+                // 如果 深度(自带未修改) > 长  或者  宽  则视为 坐标系错误  忽略 “穿过”属性
+                // 以及如果 深度 大于 “一定值” 值则直接操作 切割算法  例如 ：深度>20 则直接使用 ExecutePocketMilling_Through 
+                //  || swCam.Depth > swCam.Bound[1])  把这个判断去掉了。。 允许 深度大于宽度。。
+                // 这里 要么舍弃 错误的坐标系 按照 穿透来分析， 要么舍弃  深度>长度的零件，【这里舍弃了 深度大于长度的特征，则按照正常计算】
+                if (swCam.Depth > swCam.Bound[0] && bound[2] <= 20)
+                {
+                    ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+                }
+                else
+                    ExecutePocketMilling_Through(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -1046,7 +1065,24 @@ namespace SolidWorksAPI
 
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
 
-            ExecutePocketMilling(af,CutterTool,bound,swCam.SubFeatureCount);
+            //ExecutePocketMilling(af,CutterTool,bound,swCam.SubFeatureCount);
+            if (swCam.ThroughOrblind == 0)//未穿过 
+            {
+                ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
+            else // 穿过..  则要修改切割算法,只算该特征的周长 （穿过则按切割处理）
+            {
+                // 如果 深度(自带未修改) > 长  或者  宽  则视为 坐标系错误  忽略 “穿过”属性
+                // 以及如果 深度 大于 “一定值” 值则直接操作 切割算法  例如 ：深度>20 则直接使用 ExecutePocketMilling_Through 
+                //  || swCam.Depth > swCam.Bound[1])  把这个判断去掉了。。 允许 深度大于宽度。。
+                // 这里 要么舍弃 错误的坐标系 按照 穿透来分析， 要么舍弃  深度>长度的零件，【这里舍弃了 深度大于长度的特征，则按照正常计算】
+                if (swCam.Depth > swCam.Bound[0] && bound[2] <= 20)
+                {
+                    ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+                }
+                else
+                    ExecutePocketMilling_Through(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -1054,7 +1090,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 矩形凹腔
+        /// 矩形凹腔*
         /// </summary>
         private void GetFeature_RectangleCavity(SwCAM_Mill swCam)
         {
@@ -1075,7 +1111,9 @@ namespace SolidWorksAPI
             {
                 // 如果 深度(自带未修改) > 长  或者  宽  则视为 坐标系错误  忽略 “穿过”属性
                 // 以及如果 深度 大于 “一定值” 值则直接操作 切割算法  例如 ：深度>20 则直接使用 ExecutePocketMilling_Through 
-                if ((swCam.Depth > swCam.Bound[0] || swCam.Depth > swCam.Bound[1]) && bound[2] <= 20)
+                //  || swCam.Depth > swCam.Bound[1])  把这个判断去掉了。。 允许 深度大于宽度。。
+                // 这里 要么舍弃 错误的坐标系 按照 穿透来分析， 要么舍弃  深度>长度的零件，【这里舍弃了 深度大于长度的特征，则按照正常计算】
+                if (swCam.Depth > swCam.Bound[0] && bound[2] <= 20)
                 {
                     ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
                 }
@@ -1090,7 +1128,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 圆形凹腔
+        /// 圆形凹腔*
         /// </summary>
         private void GetFeature_CirclePock(SwCAM_Mill swCam)
         {
@@ -1099,8 +1137,19 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-            //使用腰形槽的方式，长宽 使用 直径来代替
-            ExecuteOpenSlotMilling(af, Cutter_Drill.GetCirclePock(swCam.Maxdiameter), new double[] { swCam.Maxdiameter, swCam.Maxdiameter, swCam.Depth }, swCam.SubFeatureCount);
+            double CutterTool = Cutter_Drill.GetPoked(0,swCam.Maxdiameter);//根据直径选择刀具
+
+            Axis3_CirclePocketMilling p = new Axis3_CirclePocketMilling(CutterTool, swCam.Maxdiameter, swCam.Depth, GetMaterials());
+            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+
+            af.Test_SingleTime = Math.Round(p.TotalTime / p.CutterCount, 0);
+            af.Test_ProcessCount = p.CutterCount;
+            af.Test_Dia = CutterTool;
+            af.Test_MethodName = "执行函数:CirclePocketMilling";
+            af.Test_CuttingLength = p.CuttingLength;
+            af.Test_FeedRate = p.FeedRate;
+            af.Test_CutteDepth = p.GetDepthOfCut();
+            af.Test_CuttingSpeed = p.CuttingSpeed;
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -1118,22 +1167,42 @@ namespace SolidWorksAPI
             double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
 
-            Axis3_ClosedSlotMilling p = new Axis3_ClosedSlotMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
-            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+            //Axis3_ClosedSlotMilling p = new Axis3_ClosedSlotMilling(CutterTool, bound[0], bound[1], bound[2], 1, GetMaterials());
+            //af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
 
-            int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
-            af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
+            //int proCount = NumberOfWalkCut(bound[2], CutterTool) + 1;
+            //af.TotalTime = af.TotalTime * proCount;// 根据刀具与深度 判断要切割几次
 
-            af.Test_SingleTime = Math.Round(p.TotalTime, 0);
-            af.Test_ProcessCount = proCount;
-            af.Test_Dia = CutterTool;
+            //af.Test_SingleTime = Math.Round(p.TotalTime, 0);
+            //af.Test_ProcessCount = proCount;
+            //af.Test_Dia = CutterTool;
+
+            if (swCam.ThroughOrblind == 0)//未穿过 
+            {
+                ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
+            else // 穿过..  则要修改切割算法,只算该特征的周长 （穿过则按切割处理）
+            {
+                // 如果 深度(自带未修改) > 长  或者  宽  则视为 坐标系错误  忽略 “穿过”属性
+                // 以及如果 深度 大于 “一定值” 值则直接操作 切割算法  例如 ：深度>20 则直接使用 ExecutePocketMilling_Through 
+                //  || swCam.Depth > swCam.Bound[1])  把这个判断去掉了。。 允许 深度大于宽度。。
+                // 这里 要么舍弃 错误的坐标系 按照 穿透来分析， 要么舍弃  深度>长度的零件，【这里舍弃了 深度大于长度的特征，则按照正常计算】
+                //  || swCam.Depth > swCam.Bound[1])  把这个判断去掉了。。 允许 深度大于宽度。。
+                // 这里 要么舍弃 错误的坐标系 按照 穿透来分析， 要么舍弃  深度>长度的零件，【这里舍弃了 深度大于长度的特征，则按照正常计算】
+                if (swCam.Depth > swCam.Bound[0] && bound[2] <= 20)
+                {
+                    ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+                }
+                else
+                    ExecuteRectangleCavity_Through(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 不规则凹腔
+        /// 不规则凹腔*
         /// </summary>
         private void GetFeature_AnomalyCavity(SwCAM_Mill swCam)
         {
@@ -1144,7 +1213,24 @@ namespace SolidWorksAPI
             double[] bound = ConvertLWH(swCam.Bound);//因为有坐标系所以 要自动按大小 分配 长 宽 高
             double CutterTool = Cutter_Drill.GetPoked(bound[0], bound[1]);//刀具
 
-            ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            //ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            if (swCam.ThroughOrblind == 0)//未穿过 
+            {
+                ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
+            else // 穿过..  则要修改切割算法,只算该特征的周长 （穿过则按切割处理）
+            {
+                // 如果 深度(自带未修改) > 长  或者  宽  则视为 坐标系错误  忽略 “穿过”属性
+                // 以及如果 深度 大于 “一定值” 值则直接操作 切割算法  例如 ：深度>20 则直接使用 ExecutePocketMilling_Through 
+                //  || swCam.Depth > swCam.Bound[1])  把这个判断去掉了。。 允许 深度大于宽度。。
+                // 这里 要么舍弃 错误的坐标系 按照 穿透来分析， 要么舍弃  深度>长度的零件，【这里舍弃了 深度大于长度的特征，则按照正常计算】
+                if (swCam.Depth > swCam.Bound[0] && bound[2] <= 20)
+                {
+                    ExecutePocketMilling(af, CutterTool, bound, swCam.SubFeatureCount);
+                }
+                else
+                    ExecutePocketMilling_Through(af, CutterTool, bound, swCam.SubFeatureCount);
+            }
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
