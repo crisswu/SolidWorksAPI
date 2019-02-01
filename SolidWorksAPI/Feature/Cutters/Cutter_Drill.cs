@@ -44,25 +44,6 @@ namespace SolidWorksAPI
         public static double GetDepthOfCut(double Dia)
         {
             return (Dia * 0.25);
-            #region old
-            //switch (Convert.ToInt32(Dia))
-            //{
-            //    case 20:
-            //        return 5;
-            //    case 16:
-            //        return 4;
-            //    case 12:
-            //        return 3;
-            //    case 10:
-            //        return 2.5;
-            //    case 6:
-            //        return 1.5;
-            //    case 3:
-            //        return 0.75;
-            //    default:
-            //        return -1000;
-            //}
-            #endregion
         }
         /// <summary>
         /// 获取槽铣刀的进给速率
@@ -87,6 +68,18 @@ namespace SolidWorksAPI
                 default:
                     return -1000;
             }
+        }
+        /// <summary>
+        /// 获取孔刀的进给率
+        /// </summary>
+        /// <param name="Dia"></param>
+        /// <returns></returns>
+        public static double Drill_FeedRate(double Dia)
+        {
+            if (Dia > 15)
+                return 200;
+            else
+                return 50;
         }
 
 

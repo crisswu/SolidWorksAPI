@@ -285,6 +285,50 @@ namespace SolidWorksAPI
             af.Test_Dia = CutterTool;
             af.Test_MethodName = "执行函数:OpenSlotMilling";
         }
+        /// <summary>
+        /// 执行 圆形凹腔铣_公共方法
+        /// </summary>
+        /// <param name="af">特征结果</param>
+        /// <param name="CutterTool">刀具直径</param>
+        /// <param name="HoleDia">特征直径</param>
+        /// <param name="Depth">特征深度</param>
+        /// <param name="SubFeatureCount">子特征个数</param>
+        public void ExecuteCirclePocketMilling(FeatureAmount af, double CutterTool,double HoleDia,double Depth, int SubFeatureCount)
+        {
+            Axis3_CirclePocketMilling p = new Axis3_CirclePocketMilling(CutterTool,HoleDia, Depth, GetMaterials());
+            af.TotalTime = p.TotalTime * (SubFeatureCount == 0 ? 1 : SubFeatureCount);
+
+            af.Test_SingleTime = Math.Round(p.TotalTime / p.CutterCount, 0);
+            af.Test_ProcessCount = p.CutterCount;
+            af.Test_Dia = CutterTool;
+            af.Test_MethodName = "执行函数:CirclePocketMilling";
+            af.Test_CuttingLength = p.CuttingLength;
+            af.Test_FeedRate = p.FeedRate;
+            af.Test_CutteDepth = p.GetDepthOfCut();
+            af.Test_CuttingSpeed = p.CuttingSpeed;
+        }
+        /// <summary>
+        /// 执行 圆形凹腔铣_周长切割_公共方法
+        /// </summary>
+        /// <param name="af">特征结果</param>
+        /// <param name="CutterTool">刀具直径</param>
+        /// <param name="HoleDia">特征直径</param>
+        /// <param name="Depth">特征深度</param>
+        /// <param name="SubFeatureCount">子特征个数</param>
+        public void ExecuteCirclePocketMilling_Through(FeatureAmount af, double CutterTool, double HoleDia, double Depth, int SubFeatureCount)
+        {
+            Axis3_CirclePocketMilling_Through p = new Axis3_CirclePocketMilling_Through(CutterTool, HoleDia, Depth, GetMaterials());
+            af.TotalTime = p.TotalTime * (SubFeatureCount == 0 ? 1 : SubFeatureCount);
+
+            af.Test_SingleTime = Math.Round(p.TotalTime / p.CutterCount, 0);
+            af.Test_ProcessCount = p.CutterCount;
+            af.Test_Dia = CutterTool;
+            af.Test_MethodName = "执行函数:CirclePocketMilling_Through";
+            af.Test_CuttingLength = p.CuttingLength;
+            af.Test_FeedRate = p.FeedRate;
+            af.Test_CutteDepth = p.GetDepthOfCut();
+            af.Test_CuttingSpeed = p.CuttingSpeed;
+        }
         #endregion
 
         #region ===== 获取特征相关方法 =====
@@ -887,12 +931,37 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             //实现过程
-            
-             Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
-             af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-             af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
-             double MachineMoney = GetMachineMoney();
-             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+
+            //Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
+            //af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+            //af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
+
+            if (swCam.Maxdiameter > 15) //大于 15走 圆形凹腔的 铣削方式
+            {
+                double CutterTool = Cutter_Drill.GetPoked(0, swCam.Maxdiameter);//根据直径选择刀具
+
+                if (swCam.ThroughOrblind == 0)//未穿过 
+                {
+                    ExecuteCirclePocketMilling(af, CutterTool, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount);
+                }
+                else //穿过
+                {
+                    ExecuteCirclePocketMilling_Through(af, CutterTool, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount);
+                }
+            }
+            else //小于 15走钻孔方式
+            {
+                //Axis3_Drilling p1 = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
+
+                Axis3_Drilling_New p = new Axis3_Drilling_New(swCam.Maxdiameter, swCam.Depth,GetMaterials());
+                af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+
+                
+
+            }
+
+            double MachineMoney = GetMachineMoney();
+            af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
             TotalFeatureMoney.Add(af);
         }
@@ -1128,7 +1197,7 @@ namespace SolidWorksAPI
             TotalFeatureMoney.Add(af);
         }
         /// <summary>
-        /// 圆形凹腔*
+        /// 圆形凹腔
         /// </summary>
         private void GetFeature_CirclePock(SwCAM_Mill swCam)
         {
@@ -1139,17 +1208,14 @@ namespace SolidWorksAPI
 
             double CutterTool = Cutter_Drill.GetPoked(0,swCam.Maxdiameter);//根据直径选择刀具
 
-            Axis3_CirclePocketMilling p = new Axis3_CirclePocketMilling(CutterTool, swCam.Maxdiameter, swCam.Depth, GetMaterials());
-            af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-
-            af.Test_SingleTime = Math.Round(p.TotalTime / p.CutterCount, 0);
-            af.Test_ProcessCount = p.CutterCount;
-            af.Test_Dia = CutterTool;
-            af.Test_MethodName = "执行函数:CirclePocketMilling";
-            af.Test_CuttingLength = p.CuttingLength;
-            af.Test_FeedRate = p.FeedRate;
-            af.Test_CutteDepth = p.GetDepthOfCut();
-            af.Test_CuttingSpeed = p.CuttingSpeed;
+            if (swCam.ThroughOrblind == 0)//未穿过 
+            {
+                ExecuteCirclePocketMilling(af, CutterTool, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount);
+            }
+            else //穿过
+            {
+                ExecuteCirclePocketMilling_Through(af, CutterTool, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount);
+            }
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额

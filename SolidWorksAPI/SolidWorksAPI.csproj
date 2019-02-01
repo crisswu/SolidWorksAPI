@@ -83,6 +83,8 @@
       <DependentUpon>AllFeature.cs</DependentUpon>
     </Compile>
     <Compile Include="Feature\Axis_3_Milling\Axis3Milling.cs" />
+    <Compile Include="Feature\Axis_3_Milling\Axis3_CirclePocketMilling_Through.cs" />
+    <Compile Include="Feature\Axis_3_Milling\Axis3_Drilling_New.cs" />
     <Compile Include="Feature\Axis_3_Milling\Axis3_Drilling.cs" />
     <Compile Include="Feature\Axis_3_Milling\Axis3_ClosedSlotMilling.cs" />
     <Compile Include="Feature\Axis_3_Milling\Axis3_ChamferMilling.cs" />
