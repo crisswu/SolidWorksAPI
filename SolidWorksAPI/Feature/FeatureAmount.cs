@@ -43,6 +43,8 @@ namespace SolidWorksAPI
         public double Test_FeedRate;//进给率
         public double Test_CutteDepth;//下刀深度
         public double Test_CuttingSpeed;//材料切割速率
-
+        public double Test_DotHolel;//点孔时间
+        public double Test_SingleHole;//单次的钻孔时间
+        public double Test_ExpandHole;//扩孔时间
     }
 }

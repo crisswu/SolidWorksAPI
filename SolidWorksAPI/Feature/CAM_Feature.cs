@@ -931,12 +931,12 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             //实现过程
-
+            //旧版本公式
             //Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
             //af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
             //af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
 
-            if (swCam.Maxdiameter > 15) //大于 15走 圆形凹腔的 铣削方式
+            if (swCam.Maxdiameter > 20) //大于 20走 圆形凹腔的 铣削方式
             {
                 double CutterTool = Cutter_Drill.GetPoked(0, swCam.Maxdiameter);//根据直径选择刀具
 
@@ -949,15 +949,28 @@ namespace SolidWorksAPI
                     ExecuteCirclePocketMilling_Through(af, CutterTool, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount);
                 }
             }
-            else //小于 15走钻孔方式
+            else if (swCam.Maxdiameter > 15 && swCam.Maxdiameter <= 20)//点 钻 扩
             {
-                //Axis3_Drilling p1 = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
+                int Sub = swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount;//数量
+                Axis3_Drilling_New p = new Axis3_Drilling_New(swCam.Maxdiameter, swCam.Depth, GetMaterials());
+                af.TotalTime = p.TotalTime * Sub;//钻孔
+                af.TotalTime += 10 * Sub;// 点孔时间 每个孔10秒
+                af.TotalTime += p.TotalTime * Sub; //扩孔
 
-                Axis3_Drilling_New p = new Axis3_Drilling_New(swCam.Maxdiameter, swCam.Depth,GetMaterials());
+                af.Test_DotHolel = 10 * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);// 点孔时间 每个孔10秒
+                af.Test_FeedRate = p.FeedRate;
+                af.Test_SingleHole = p.TotalTime;
+                af.Test_ExpandHole = p.TotalTime * Sub; //扩孔
+            }
+            else //小于 15  点  钻
+            {
+                Axis3_Drilling_New p = new Axis3_Drilling_New(swCam.Maxdiameter, swCam.Depth, GetMaterials());
                 af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-
-                
-
+                af.TotalTime += 10 * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);// 点孔时间 每个孔10秒
+    
+                af.Test_DotHolel = 10 * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);// 点孔时间 每个孔10秒
+                af.Test_FeedRate = p.FeedRate;
+                af.Test_SingleHole = p.TotalTime;
             }
 
             double MachineMoney = GetMachineMoney();

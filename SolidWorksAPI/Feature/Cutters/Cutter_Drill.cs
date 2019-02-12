@@ -76,10 +76,18 @@ namespace SolidWorksAPI
         /// <returns></returns>
         public static double Drill_FeedRate(double Dia)
         {
-            if (Dia > 15)
-                return 200;
+             if (Dia > 15 && Dia <= 20)
+                return 180;
+            else if (Dia > 10 && Dia <= 15)
+                return 150;
+            else if (Dia > 6 && Dia <= 10)
+                return 120;
+            else if (Dia > 3 && Dia <= 6)
+                return 100;
+            else if (Dia <= 3)
+                return 80;
             else
-                return 50;
+                return -1000;
         }
 
 
