@@ -1018,17 +1018,59 @@ namespace SolidWorksAPI
                     sumStr += "┣   组:X" + item._SwCAM.SubFeatureCount + "\n";
                     sumStr += "┗┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┛\n";
                 }
+                else if (item.FeatureName.IndexOf("沉镗孔") >= 0)
+                {
+                    sumStr += "┏┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┓\n";
+                    sumStr += "┣  【" + item.FeatureName + "(X" + item._SwCAM.SubFeatureCount + ")】: " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 " + GetMin(Convert.ToInt32(Math.Round(item.TotalTime, 0))) + "\n";
+
+                    sumStr += "┣   ========= 镗孔 =========\n";
+                    if (item._SwCAM.BoreDiameter > 20)
+                    {
+                        sumStr += "┣  单次时间：" + item.Test_SingleTime + "秒\n" +
+                          "┣  走刀次数:" + item.Test_ProcessCount + "次\n" +
+                          "┣  裁剪单长度:" + Math.Round(item.Test_CuttingLength / item.Test_ProcessCount, 1) + "mm\n" +
+                          "┣  裁剪总长度:" + item.Test_CuttingLength + "mm\n" +
+                          "┣  刀具直径：" + item.Test_Dia + "mm\n" +
+                          "┣  下刀深度：" + item.Test_CutteDepth + "mm\n" +
+                          "┣  进给率：" + item.Test_FeedRate + "(mm/min)\n" +
+                          "┣  材料切割速率：" + item.Test_CuttingSpeed + "倍\n" +
+                          "┣  尺寸(mm):[" + Math.Round(item._SwCAM.Bound[0], 2) + " * " + Math.Round(item._SwCAM.Bound[1], 2) + " * " + Math.Round(item._SwCAM.Depth, 2) + "]\n" +
+                          "┣  " + item.Test_MethodName + " \n";
+                    }
+                    else
+                    {
+                        sumStr += "┣   直径:" + Math.Round(item._SwCAM.BoreDiameter, 2) + "\n";
+                        sumStr += "┣   深度:" + Math.Round(item._SwCAM.BoreDepth, 2) + "\n";
+                        sumStr += "┣   单次钻孔:" + item.Test_BoreSingleHole + "秒\n";
+                        sumStr += "┣   扩孔时间:" + item.Test_BoreExpandHole + "秒\n";
+                        sumStr += "┣   点孔:" + item.Test_BoreDotHolel + "秒\n";
+                        sumStr += "┣   进给率:" + item.Test_FeedRate + "(mm/min)\n";
+                        sumStr += "┣   " + item.Test_BoreMethod_1 + "\n";
+                    }
+                    sumStr += "┣   ========= 孔 =========\n";
+                    sumStr += "┣   直径:" + Math.Round(item._SwCAM.Maxdiameter, 2) + "\n";
+                    sumStr += "┣   深度:" + Math.Round(item._SwCAM.Depth - item._SwCAM.BoreDepth, 2) + "\n";
+                    sumStr += "┣   单次钻孔:" + item.Test_SingleHole + "秒\n";
+                    sumStr += "┣   扩孔时间:" + item.Test_ExpandHole + "秒\n";
+                    sumStr += "┣   点孔:" + item.Test_DotHolel + "秒\n";
+                    sumStr += "┣   进给率:" + item.Test_FeedRate + "(mm/min)\n";
+                    sumStr += "┣   " + item.Test_BoreMethod_1 + "\n";
+
+                    sumStr += "┣   组:X" + item._SwCAM.SubFeatureCount + "\n";
+                    sumStr += "┗┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┛\n";
+                }
                 else if (item.FeatureName.IndexOf("孔") >= 0)
                 {
                     sumStr += "┏┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┓\n";
                     sumStr += "┣  【" + item.FeatureName + "(X" + item._SwCAM.SubFeatureCount + ")】: " + Convert.ToInt32(Math.Round(item.TotalTime, 0)) + "秒 " + GetMin(Convert.ToInt32(Math.Round(item.TotalTime, 0))) + "\n";
                     sumStr += "┣   直径:" + Math.Round(item._SwCAM.Maxdiameter,2) + "\n";
                     sumStr += "┣   深度:" + Math.Round(item._SwCAM.Depth, 2) + "\n";
-                    sumStr += "┣   单次钻孔:" + item.Test_SingleHole + "秒\n";
-                    sumStr += "┣   扩孔时间:" + item.Test_ExpandHole + "秒\n";
+                    sumStr += "┣   单次钻孔:" + Math.Round(item.Test_SingleHole,0) + "秒\n";
+                    sumStr += "┣   扩孔时间:" + Math.Round(item.Test_ExpandHole,0) + "秒\n";
                     sumStr += "┣   点孔:" + item.Test_DotHolel + "秒\n";
                     sumStr += "┣   进给率:" + item.Test_FeedRate + "(mm/min)\n";
                     sumStr += "┣   组:X" + item._SwCAM.SubFeatureCount + "\n";
+                    sumStr += "┣   " + item.Test_MethodName + "\n";
                     sumStr += "┗┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┅┛\n";
                 }
                 else

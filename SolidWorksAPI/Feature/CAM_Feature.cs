@@ -329,6 +329,56 @@ namespace SolidWorksAPI
             af.Test_CutteDepth = p.GetDepthOfCut();
             af.Test_CuttingSpeed = p.CuttingSpeed;
         }
+        /// <summary>
+        /// 执行 孔操作
+        /// </summary>
+        /// <param name="af">特征结果</param>
+        /// <param name="Maxdiameter">直径</param>
+        /// <param name="Depth">深度</param>
+        /// <param name="ThroughOrblind">是否穿过，1=是，0=否</param>
+        /// <param name="SubFeatureCount">子特征个数</param>
+        public void ExecuteHole(FeatureAmount af, double Maxdiameter,double Depth, int ThroughOrblind, int SubFeatureCount)
+        {
+            int DotHole = 10;//点孔时间  秒
+            if (Maxdiameter > 20) //大于 20走 圆形凹腔的 铣削方式
+            {
+                double CutterTool = Cutter_Drill.GetPoked(0, Maxdiameter);//根据直径选择刀具
+
+                if (ThroughOrblind == 0)//未穿过 
+                {
+                    ExecuteCirclePocketMilling(af, CutterTool,Maxdiameter,Depth,SubFeatureCount);
+                }
+                else //穿过
+                {
+                    ExecuteCirclePocketMilling_Through(af, CutterTool,Maxdiameter,Depth,SubFeatureCount);
+                }
+            }
+            else if (Maxdiameter > 15 && Maxdiameter <= 20)//点 钻 扩
+            {
+                int Sub = SubFeatureCount == 0 ? 1 : SubFeatureCount;//数量
+                Axis3_Drilling_New p = new Axis3_Drilling_New(Maxdiameter, Depth, GetMaterials());
+                af.TotalTime = p.TotalTime * Sub;//钻孔
+                af.TotalTime += DotHole * Sub;// 点孔时间 每个孔10秒
+                af.TotalTime += p.TotalTime * Sub; //扩孔
+
+                af.Test_DotHolel = DotHole * (SubFeatureCount == 0 ? 1 : SubFeatureCount);// 点孔时间 每个孔 X 秒
+                af.Test_FeedRate = p.FeedRate;
+                af.Test_SingleHole = p.TotalTime;
+                af.Test_ExpandHole = p.TotalTime * Sub; //扩孔
+                af.Test_MethodName = "ExecuteHole_点_钻_扩";
+            }   
+            else //小于 15  点  钻
+            {
+                Axis3_Drilling_New p = new Axis3_Drilling_New(Maxdiameter, Depth, GetMaterials());
+                af.TotalTime = p.TotalTime * (SubFeatureCount == 0 ? 1 : SubFeatureCount);
+                af.TotalTime += DotHole * (SubFeatureCount == 0 ? 1 : SubFeatureCount);// 点孔时间 每个孔 x 秒
+
+                af.Test_DotHolel = DotHole * (SubFeatureCount == 0 ? 1 : SubFeatureCount);// 点孔时间 每个孔 x 秒
+                af.Test_FeedRate = p.FeedRate;
+                af.Test_SingleHole = p.TotalTime;
+                af.Test_MethodName = "ExecuteHole_点_钻";
+            }
+        }
         #endregion
 
         #region ===== 获取特征相关方法 =====
@@ -931,47 +981,14 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             //实现过程
-            //旧版本公式
+
+            #region 旧版本公式
             //Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
             //af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
             //af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
+            #endregion
 
-            if (swCam.Maxdiameter > 20) //大于 20走 圆形凹腔的 铣削方式
-            {
-                double CutterTool = Cutter_Drill.GetPoked(0, swCam.Maxdiameter);//根据直径选择刀具
-
-                if (swCam.ThroughOrblind == 0)//未穿过 
-                {
-                    ExecuteCirclePocketMilling(af, CutterTool, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount);
-                }
-                else //穿过
-                {
-                    ExecuteCirclePocketMilling_Through(af, CutterTool, swCam.Maxdiameter, swCam.Depth, swCam.SubFeatureCount);
-                }
-            }
-            else if (swCam.Maxdiameter > 15 && swCam.Maxdiameter <= 20)//点 钻 扩
-            {
-                int Sub = swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount;//数量
-                Axis3_Drilling_New p = new Axis3_Drilling_New(swCam.Maxdiameter, swCam.Depth, GetMaterials());
-                af.TotalTime = p.TotalTime * Sub;//钻孔
-                af.TotalTime += 10 * Sub;// 点孔时间 每个孔10秒
-                af.TotalTime += p.TotalTime * Sub; //扩孔
-
-                af.Test_DotHolel = 10 * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);// 点孔时间 每个孔10秒
-                af.Test_FeedRate = p.FeedRate;
-                af.Test_SingleHole = p.TotalTime;
-                af.Test_ExpandHole = p.TotalTime * Sub; //扩孔
-            }
-            else //小于 15  点  钻
-            {
-                Axis3_Drilling_New p = new Axis3_Drilling_New(swCam.Maxdiameter, swCam.Depth, GetMaterials());
-                af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-                af.TotalTime += 10 * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);// 点孔时间 每个孔10秒
-    
-                af.Test_DotHolel = 10 * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);// 点孔时间 每个孔10秒
-                af.Test_FeedRate = p.FeedRate;
-                af.Test_SingleHole = p.TotalTime;
-            }
+            ExecuteHole(af, swCam.Maxdiameter, swCam.Depth, swCam.ThroughOrblind, swCam.SubFeatureCount);
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
@@ -1006,15 +1023,26 @@ namespace SolidWorksAPI
             af._SwCAM = swCam;
             ///实现过程
 
-                //镗孔 第一阶段 底孔
-                Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth,1, GetMaterials());
-                af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-               af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
+            #region 旧代码
+            //    //镗孔 第一阶段 底孔
+            //    Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth,1, GetMaterials());
+            //    af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+            //   af.TotalTime = af.TotalTime * 5;// 增加点孔的时间！！ 翻倍~
 
-            //镗孔 第二阶段 镗孔
-            Axis3_Drilling p2 = new Axis3_Drilling(swCam.Maxdiameter, swCam.BoreDepth, 1, GetMaterials());
-                af.TotalTime += p2.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-                af.TotalTime = af.TotalTime * 1.8;
+            ////镗孔 第二阶段 镗孔
+            //Axis3_Drilling p2 = new Axis3_Drilling(swCam.Maxdiameter, swCam.BoreDepth, 1, GetMaterials());
+            //    af.TotalTime += p2.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+            //    af.TotalTime = af.TotalTime * 1.8;
+            #endregion
+
+            ExecuteHole(af, swCam.BoreDiameter, swCam.BoreDepth,0, swCam.SubFeatureCount); //最外层 镗孔
+            af.Test_BoreMethod_1 = af.Test_MethodName;
+            af.Test_BoreSingleHole = af.Test_SingleHole;
+            af.Test_BoreExpandHole = af.Test_ExpandHole;
+            af.Test_BoreDotHolel = af.Test_DotHolel;
+
+            ExecuteHole(af, swCam.Maxdiameter, (swCam.Depth - swCam.BoreDepth),swCam.ThroughOrblind, swCam.SubFeatureCount); //底层孔 （深度 要减去一个镗削深度）
+            af.Test_BoreMethod_2 = af.Test_MethodName;
 
             double MachineMoney = GetMachineMoney();
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额

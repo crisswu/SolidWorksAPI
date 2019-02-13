@@ -46,5 +46,10 @@ namespace SolidWorksAPI
         public double Test_DotHolel;//点孔时间
         public double Test_SingleHole;//单次的钻孔时间
         public double Test_ExpandHole;//扩孔时间
+        public string Test_BoreMethod_1;//镗孔1执行方法名称
+        public string Test_BoreMethod_2;//镗孔2执行方法名称
+        public double Test_BoreSingleHole;//镗孔单次钻孔时间
+        public double Test_BoreExpandHole;//镗孔扩孔时间
+        public double Test_BoreDotHolel;//镗孔点孔时间
     }
 }
