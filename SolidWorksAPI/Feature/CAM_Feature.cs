@@ -339,10 +339,10 @@ namespace SolidWorksAPI
         /// <param name="SubFeatureCount">子特征个数</param>
         public void ExecuteHole(FeatureAmount af, double Maxdiameter,double Depth, int ThroughOrblind, int SubFeatureCount)
         {
-            int DotHole = 10;//点孔时间  秒
+            int DotHole = 5;//点孔时间  秒
             if (Maxdiameter > 20) //大于 20走 圆形凹腔的 铣削方式
             {
-                double CutterTool = Cutter_Drill.GetPoked(0, Maxdiameter);//根据直径选择刀具
+                double CutterTool = Cutter_Drill.GetCirclePock(Maxdiameter);//根据直径选择刀具
 
                 if (ThroughOrblind == 0)//未穿过 
                 {
@@ -1004,12 +1004,18 @@ namespace SolidWorksAPI
             af.FeatureName = swCam.FeatureName;
             af._SwCAM = swCam;
             ///实现过程
-           
-                Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
-                af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-                af.TotalTime = af.TotalTime * 3.5; // 因为埋头孔有 沉头可以把此部分的时间 增加50% 来处理  在增加点孔时间 共 3.5倍 （方案：Kevin.yang） 
-                double MachineMoney = GetMachineMoney();
-                af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+
+            #region 旧代码
+            //Axis3_Drilling p = new Axis3_Drilling(swCam.Maxdiameter, swCam.Depth, 1, GetMaterials());
+            //af.TotalTime = p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+            //af.TotalTime = af.TotalTime * 3.5; // 因为埋头孔有 沉头可以把此部分的时间 增加50% 来处理  在增加点孔时间 共 3.5倍 （方案：Kevin.yang） 
+            //double MachineMoney = GetMachineMoney();
+            //af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
+            #endregion
+
+            ExecuteHole(af, swCam.Maxdiameter, swCam.Depth, swCam.ThroughOrblind, swCam.SubFeatureCount);
+            af.TotalTime += 10;//处理沉头的时间 固定为10秒
+            af.Test_CounterBore = 10;
 
             TotalFeatureMoney.Add(af);
         }
@@ -1044,6 +1050,8 @@ namespace SolidWorksAPI
             ExecuteHole(af, swCam.Maxdiameter, (swCam.Depth - swCam.BoreDepth),swCam.ThroughOrblind, swCam.SubFeatureCount); //底层孔 （深度 要减去一个镗削深度）
             af.Test_BoreMethod_2 = af.Test_MethodName;
 
+            af.TotalTime -= 11;//按照一把刀计算 会额外多出 点孔+ATC+Other 共计11秒时间 这里要减去
+
             double MachineMoney = GetMachineMoney();
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额
 
@@ -1052,6 +1060,7 @@ namespace SolidWorksAPI
         /// <summary>
         /// [MS孔]*
         /// </summary>
+        /// 
         private void GetFeature_MSHole(SwCAM_Mill swCam)
         {
             FeatureAmount af = new FeatureAmount();
@@ -1060,28 +1069,23 @@ namespace SolidWorksAPI
             //实现过程
 
             af.TotalTime = 0;
-            double minTime = 999999;//获取最短时间 来计算 点孔
+
             foreach (SwMultiStep item in swCam.SubMultiStep)
             {
                 if (item.MultiSetpType == 1)//圆柱
                 {
-                    Axis3_Drilling p = new Axis3_Drilling(item.Diameter, item.Depth,1, GetMaterials());
-                    af.TotalTime += p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-                    if (p.TotalTime < minTime)
-                        minTime = p.TotalTime;
+                    //Axis3_Drilling p = new Axis3_Drilling(item.Diameter, item.Depth,1, GetMaterials());
+                    //af.TotalTime += p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
+
+                    ExecuteHole(af, item.Diameter, item.Depth, swCam.ThroughOrblind, swCam.SubFeatureCount);
                 }
                 else if (item.MultiSetpType == 2)//倒角
                 {
                     Axis3_ChamferMilling p = new Axis3_ChamferMilling(Cutter_Drill.chamfer, item.TopDiameter * 3.14, item.Depth, 1,GetMaterials());
                     af.TotalTime += p.TotalTime * (swCam.SubFeatureCount == 0 ? 1 : swCam.SubFeatureCount);
-                    if (p.TotalTime < minTime)
-                        minTime = p.TotalTime;
                 }
             }
-            if (minTime == 999999)
-                minTime = 0;
 
-            af.TotalTime += af.TotalTime + minTime / 2;//增加点孔时间。。 用时最短的工序/2
 
             double MachineMoney = GetMachineMoney();
             af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额

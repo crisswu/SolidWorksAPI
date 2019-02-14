@@ -31,7 +31,8 @@ namespace SolidWorksAPI
             this._Materials = _Materials;
             this.CuttingSpeed = GetCuttingSpeed();
             this.FeedPer = 0.07;
-            this.ReserveLength = 5; 
+            this.ReserveLength = 5;
+            //this.OtherTime = 2;
             Calculate_SpindleSpeed();
             Calculate_FeedRate();
             Calculate_CuttingTime();
@@ -91,7 +92,7 @@ namespace SolidWorksAPI
         /// </summary>
         protected override void Calculate_TotalTime()
         {
-            this.TotalTime = this.AtcTime + this.OtherTime + this.CuttingTime;
+            this.TotalTime =  this.AtcTime+ this.OtherTime + this.CuttingTime;
         }
     }
 }

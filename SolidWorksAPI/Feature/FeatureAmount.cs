@@ -51,5 +51,6 @@ namespace SolidWorksAPI
         public double Test_BoreSingleHole;//镗孔单次钻孔时间
         public double Test_BoreExpandHole;//镗孔扩孔时间
         public double Test_BoreDotHolel;//镗孔点孔时间
+        public double Test_CounterBore;//沉头时间
     }
 }

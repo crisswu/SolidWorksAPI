@@ -111,14 +111,12 @@ namespace SolidWorksAPI
         /// <returns></returns>
         public static double GetCirclePock(double diameter)
         {
-            if (diameter > 20)
+            if (diameter > 200)
                 return 20;
-            else if (diameter <= 20 && diameter > 16)
+            else if (diameter > 20 && diameter <= 200)
                 return 16;
-            else if (diameter <= 16 && diameter > 10)
-                return 10;
             else
-                return 6;
+                return 16;
         }
     }
 }
