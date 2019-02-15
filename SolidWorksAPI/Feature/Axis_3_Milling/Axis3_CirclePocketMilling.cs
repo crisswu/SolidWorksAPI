@@ -85,9 +85,9 @@ namespace SolidWorksAPI
         {
             if (resDia <= this.Dia) // 如果特征直径 小于刀具直径 则计算最后一次 后返回总长度
             {
-                if (resDia > (Dia / 2))
+                if (resDia > Dia)
                 {
-                    cuttingLength += resDia - (Dia / 2) * 3.14;// 外直径 减掉 刀具半径 计算周长
+                    cuttingLength += resDia - Dia * 3.14;// 外直径 减掉 刀具半径 计算周长
                     return cuttingLength;
                 }
                 else
@@ -95,8 +95,8 @@ namespace SolidWorksAPI
             }
             else
             {
-                cuttingLength += resDia - (Dia / 2) * 3.14;// 外直径 减掉 刀具半径 计算周长
-                resDia = resDia - Dia * 0.7;//每次 直径缩小至 刀具 直径的70% 为重叠率
+                cuttingLength += (resDia) * 3.14;// 外直径 减掉 刀具半径 计算周长
+                resDia = resDia - (Dia * 0.7);//每次 直径缩小至 刀具 直径的70% 为重叠率
                 return Recursion(resDia, cuttingLength);
             }
 

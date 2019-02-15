@@ -344,6 +344,8 @@ namespace SolidWorksAPI
             {
                 double CutterTool = Cutter_Drill.GetCirclePock(Maxdiameter);//根据直径选择刀具
 
+                Axis3_Drilling_New p = new Axis3_Drilling_New(Maxdiameter, Depth, GetMaterials());
+
                 if (ThroughOrblind == 0)//未穿过 
                 {
                     ExecuteCirclePocketMilling(af, CutterTool,Maxdiameter,Depth,SubFeatureCount);
@@ -352,6 +354,7 @@ namespace SolidWorksAPI
                 {
                     ExecuteCirclePocketMilling_Through(af, CutterTool,Maxdiameter,Depth,SubFeatureCount);
                 }
+                af.TotalTime += p.TotalTime;
             }
             else if (Maxdiameter > 15 && Maxdiameter <= 20)//点 钻 扩
             {
@@ -1045,12 +1048,28 @@ namespace SolidWorksAPI
             af.Test_BoreMethod_1 = af.Test_MethodName;
             af.Test_BoreSingleHole = af.Test_SingleHole;
             af.Test_BoreExpandHole = af.Test_ExpandHole;
-            af.Test_BoreDotHolel = af.Test_DotHolel;
+            af.Test_BoreDotHole = af.Test_DotHolel;
+            af.Test_BoreTopTime = af.TotalTime;//头部时间
 
-            ExecuteHole(af, swCam.Maxdiameter, (swCam.Depth - swCam.BoreDepth),swCam.ThroughOrblind, swCam.SubFeatureCount); //底层孔 （深度 要减去一个镗削深度）
-            af.Test_BoreMethod_2 = af.Test_MethodName;
+            FeatureAmount afTwo = new FeatureAmount();
+            afTwo._SwCAM = swCam;
 
-            af.TotalTime -= 11;//按照一把刀计算 会额外多出 点孔+ATC+Other 共计11秒时间 这里要减去
+            ExecuteHole(afTwo, swCam.Maxdiameter, (swCam.Depth - swCam.BoreDepth),swCam.ThroughOrblind, swCam.SubFeatureCount); //底层孔 （深度 要减去一个镗削深度）
+            af.Test_BoreMethod_2 = afTwo.Test_MethodName;
+            af.Test_BoreBottomTime = afTwo.TotalTime;//底部时间
+            af.Test_SingleHole = afTwo.Test_SingleHole;
+            af.Test_ExpandHole = afTwo.Test_ExpandHole;
+            af.Test_DotHolel = afTwo.Test_DotHolel;
+
+
+            af.TotalTime += afTwo.TotalTime;//两个时间合并
+
+
+            if (af.Test_MethodName == "ExecuteHole_点_钻")
+                af.Test_ExpandHole = 0;//扩孔的显示问题
+
+            if (swCam.BoreDiameter <= 20) 
+               af.TotalTime -= 11;//按照一把刀计算 会额外多出 点孔+ATC+Other 共计11秒时间 这里要减去
 
             double MachineMoney = GetMachineMoney();
                 af.Money = Convert.ToDecimal(MachineMoney / 60 / 60 * af.TotalTime); //小时换算秒 * 加工时间 = 加工金额

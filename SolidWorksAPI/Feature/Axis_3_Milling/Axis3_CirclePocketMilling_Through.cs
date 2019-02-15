@@ -53,7 +53,7 @@ namespace SolidWorksAPI
         {
             double cutTools = this.GetDepthOfCut();//每次的切割深度
             double sumWalk = Depth / cutTools;//换算出 总共需要走多少次
-             CutterCount = Convert.ToInt32(Math.Ceiling(sumWalk)) ;//获取最大整数  例： 3.1 = 4
+             CutterCount = Convert.ToInt32(Math.Ceiling(sumWalk))+1 ;//获取最大整数  例： 3.1 = 4
             return CutterCount;
         }
         /// <summary>
@@ -72,7 +72,7 @@ namespace SolidWorksAPI
         /// </summary>
         protected void Calculate_CuttingLength()
         {
-            this.CuttingLength = ((this.FeatureDia - (this.Dia / 2)) *3.14) * NumberOfWalkCut();
+            this.CuttingLength = (this.FeatureDia *3.14) * NumberOfWalkCut();
         }
 
         /// <summary>
