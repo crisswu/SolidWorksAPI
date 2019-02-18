@@ -36,4 +36,36 @@ namespace SolidWorksAPI
         /// </summary>
         public double BottomArcFaceHeight { get; set; }
     }
+
+    /// <summary>
+    /// 材料
+    /// </summary>
+    public enum Materials
+    {
+        /// <summary>
+        /// 铝
+        /// </summary>
+        Aluminum = 0,
+        /// <summary>
+        /// 铜
+        /// </summary>
+        Copper = 1,
+        /// <summary>
+        /// 合金钢
+        /// </summary>
+        Alloy = 2,
+        /// <summary>
+        /// 碳钢
+        /// </summary>
+        Carbon = 3,
+        /// <summary>
+        /// 不锈钢
+        /// </summary>
+        Stainless = 4,
+        /// <summary>
+        /// 塑料
+        /// </summary>
+        Plastic = 5
+    }
+
 }

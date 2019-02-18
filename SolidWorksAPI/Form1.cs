@@ -55,7 +55,7 @@ namespace SolidWorksAPI
 
         #endregion
 
-        string partfilepath = Application.StartupPath + "\\test4.STEP";
+        string partfilepath = Application.StartupPath + "\\test.sldprt";
         string templatePath = Application.StartupPath;
 
         private void button1_Click(object sender, EventArgs e)

@@ -31,6 +31,10 @@ namespace SolidWorksAPI
         /// 毛坯尺寸
         /// </summary>
         public double[] StockSize = new double[3];
+        /// <summary>
+        /// 错误信息
+        /// </summary>
+        public string ErrorMsg = "";
 
         public CAM_Feature()
         {
@@ -44,64 +48,71 @@ namespace SolidWorksAPI
         /// <param name="swCAM"></param>
         public void ComputeFeature_Mill(List<SwCAM_Mill> swCAMs)
         {
-            GetSetFixture();//装夹时间
-            GetFaceMill();//面部粗铣
-            GetFaceMill();//面部粗铣
-            GetProfileMill();//外轮廓粗铣
-
-            foreach (SwCAM_Mill item in swCAMs)
+            try
             {
-                switch (item.VolumeType)
-                {
-                    case (int)CWVolumeType_e.CW_HOLE_VOLUME://孔或者孔组
-                        GetFeature_Hole(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_HOLECTRSUNK_VOLUME: //埋头孔
-                        GetFeature_HoleCtrsunk(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_HOLECTRBORE_VOLUME: //沉镗孔
-                        GetFeature_HoleCtrbore(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_MULTISTEP_VOLUME:   //MS孔  (多阶)
-                        GetFeature_MSHole(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_POCKET_VOLUME://不规则凹腔 、圆形凹腔、腰形凹腔、矩形凹腔
-                        if (item.FeatureName.IndexOf("矩形") >= 0)
-                            GetFeature_RectangleCavity(item);
-                        else if (item.FeatureName.IndexOf("腰型") >= 0)
-                            GetFeature_KidneyPock(item);
-                        else if (item.FeatureName.IndexOf("圆形凹腔") >= 0)
-                            GetFeature_CirclePock(item);
-                        else
-                            GetFeature_AnomalyCavity(item);//不规则凹腔
-                        break;
-                    case (int)CWVolumeType_e.CW_SLOT_VOLUME://不规则槽、矩形槽、腰形槽
-                        if (item.FeatureName.IndexOf("矩形") >= 0)
-                            GetFeature_RectangleGroove(item);
-                        else if (item.FeatureName.IndexOf("腰型") >= 0)
-                            GetFeature_KidneySlot(item);
-                        else
-                            GetFeature_AnomalyGroove(item);//不规则槽
-                        break;
-                    case (int)CWVolumeType_e.CW_OPENPOCKET_VOLUME: //开放式凹腔 、周界-非封闭凹腔
-                        if (item.FeatureName.IndexOf("开放式凹腔") >= 0)
-                            GetFeature_OpenCavity(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_BOSS_VOLUME://圆形凸台 
-                            GetFeature_CircularBoss(item);
-                        break;
-                    case (int)CWVolumeType_e.CW_SLAB_VOLUME: //面特征
-                        break;
-                    case (int)CWVolumeType_e.CW_MULTIFACE_VOLUME:
-                        break;
-                    case (int)CWVolumeType_e.CW_WORKPIECE_VOLUME:
-                        break;
-                    case (int)CWVolumeType_e.CW_3AXIS_VOLUME:
-                        break;
-                    default:
-                        break;
+                GetSetFixture();//装夹时间
+                GetFaceMill();//面部粗铣
+                GetFaceMill();//面部粗铣
+                GetProfileMill();//外轮廓粗铣
 
+                foreach (SwCAM_Mill item in swCAMs)
+                {
+                    switch (item.VolumeType)
+                    {
+                        case (int)CWVolumeType_e.CW_HOLE_VOLUME://孔或者孔组
+                            GetFeature_Hole(item);
+                            break;
+                        case (int)CWVolumeType_e.CW_HOLECTRSUNK_VOLUME: //埋头孔
+                            GetFeature_HoleCtrsunk(item);
+                            break;
+                        case (int)CWVolumeType_e.CW_HOLECTRBORE_VOLUME: //沉镗孔
+                            GetFeature_HoleCtrbore(item);
+                            break;
+                        case (int)CWVolumeType_e.CW_MULTISTEP_VOLUME:   //MS孔  (多阶)
+                            GetFeature_MSHole(item);
+                            break;
+                        case (int)CWVolumeType_e.CW_POCKET_VOLUME://不规则凹腔 、圆形凹腔、腰形凹腔、矩形凹腔
+                            if (item.FeatureName.IndexOf("矩形") >= 0)
+                                GetFeature_RectangleCavity(item);
+                            else if (item.FeatureName.IndexOf("腰型") >= 0)
+                                GetFeature_KidneyPock(item);
+                            else if (item.FeatureName.IndexOf("圆形凹腔") >= 0)
+                                GetFeature_CirclePock(item);
+                            else
+                                GetFeature_AnomalyCavity(item);//不规则凹腔
+                            break;
+                        case (int)CWVolumeType_e.CW_SLOT_VOLUME://不规则槽、矩形槽、腰形槽
+                            if (item.FeatureName.IndexOf("矩形") >= 0)
+                                GetFeature_RectangleGroove(item);
+                            else if (item.FeatureName.IndexOf("腰型") >= 0)
+                                GetFeature_KidneySlot(item);
+                            else
+                                GetFeature_AnomalyGroove(item);//不规则槽
+                            break;
+                        case (int)CWVolumeType_e.CW_OPENPOCKET_VOLUME: //开放式凹腔 、周界-非封闭凹腔
+                            if (item.FeatureName.IndexOf("开放式凹腔") >= 0)
+                                GetFeature_OpenCavity(item);
+                            break;
+                        case (int)CWVolumeType_e.CW_BOSS_VOLUME://圆形凸台 
+                            GetFeature_CircularBoss(item);
+                            break;
+                        case (int)CWVolumeType_e.CW_SLAB_VOLUME: //面特征
+                            break;
+                        case (int)CWVolumeType_e.CW_MULTIFACE_VOLUME:
+                            break;
+                        case (int)CWVolumeType_e.CW_WORKPIECE_VOLUME:
+                            break;
+                        case (int)CWVolumeType_e.CW_3AXIS_VOLUME:
+                            break;
+                        default:
+                            break;
+
+                    }
                 }
+            }
+            catch (Exception ep)
+            {
+                ErrorMsg = "特征计算错误:" + ep.Message;
             }
         }
         /// <summary>
@@ -414,6 +425,7 @@ namespace SolidWorksAPI
                 if (cwDispCol.Count == 0)
                 {
                     Console.Write("该图纸无法提取特征！");
+                    ErrorMsg = "该图纸无法提取特征！";
                     return null;
                 }
 
@@ -583,6 +595,7 @@ namespace SolidWorksAPI
             catch (Exception ep)
             {
                 Console.Write(ep.Message);
+                ErrorMsg = "特征错误识别:"+ep.Message;
                 return null;
             }
 
