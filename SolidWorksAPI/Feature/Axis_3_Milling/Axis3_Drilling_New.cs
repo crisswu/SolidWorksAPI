@@ -92,7 +92,7 @@ namespace SolidWorksAPI
         /// </summary>
         protected override void Calculate_TotalTime()
         {
-            this.TotalTime =  this.AtcTime+ this.OtherTime + this.CuttingTime;
+            this.TotalTime =  this.OtherTime + this.CuttingTime;
         }
     }
 }

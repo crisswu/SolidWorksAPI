@@ -54,5 +54,6 @@ namespace SolidWorksAPI
         public double Test_BoreTopTime;//镗孔头部时间
         public double Test_BoreBottomTime;//镗孔底部时间
         public double Test_CounterBore;//沉头时间
+        public double Test_ToolChange;//换刀时间
     }
 }

@@ -374,11 +374,13 @@ namespace SolidWorksAPI
                 af.TotalTime = p.TotalTime * Sub;//钻孔
                 af.TotalTime += DotHole * Sub;// 点孔时间 每个孔10秒
                 af.TotalTime += p.TotalTime * Sub; //扩孔
+                af.TotalTime += 3;//换刀时间
 
                 af.Test_DotHolel = DotHole * (SubFeatureCount == 0 ? 1 : SubFeatureCount);// 点孔时间 每个孔 X 秒
                 af.Test_FeedRate = p.FeedRate;
                 af.Test_SingleHole = p.TotalTime;
                 af.Test_ExpandHole = p.TotalTime * Sub; //扩孔
+                af.Test_ToolChange = 3;
                 af.Test_MethodName = "ExecuteHole_点_钻_扩";
             }   
             else //小于 15  点  钻
@@ -386,10 +388,12 @@ namespace SolidWorksAPI
                 Axis3_Drilling_New p = new Axis3_Drilling_New(Maxdiameter, Depth, GetMaterials());
                 af.TotalTime = p.TotalTime * (SubFeatureCount == 0 ? 1 : SubFeatureCount);
                 af.TotalTime += DotHole * (SubFeatureCount == 0 ? 1 : SubFeatureCount);// 点孔时间 每个孔 x 秒
+                af.TotalTime += 3;//换刀时间
 
                 af.Test_DotHolel = DotHole * (SubFeatureCount == 0 ? 1 : SubFeatureCount);// 点孔时间 每个孔 x 秒
                 af.Test_FeedRate = p.FeedRate;
                 af.Test_SingleHole = p.TotalTime;
+                af.Test_ToolChange = 3;
                 af.Test_MethodName = "ExecuteHole_点_钻";
             }
         }

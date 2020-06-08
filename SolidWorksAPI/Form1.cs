@@ -8,11 +8,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using SolidWorks.Interop.sldcostingapi;
-using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.sldcostingapi; 
 using SolidWorks.Interop.swconst;
 using System.IO;
 using CAMWORKSLib;
+using System.Runtime.InteropServices;
+using System.Threading; 
+using System.Diagnostics;
 
 namespace SolidWorksAPI
 {
@@ -55,7 +57,7 @@ namespace SolidWorksAPI
 
         #endregion
 
-        string partfilepath = Application.StartupPath + "\\test.sldprt";
+        string partfilepath = Application.StartupPath + "\\unitTest.SLDPRT";
         string templatePath = Application.StartupPath;
 
         private void button1_Click(object sender, EventArgs e)
@@ -73,7 +75,7 @@ namespace SolidWorksAPI
 
             //Solidworks程序对象
             m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
-
+            
             //打开文件
             m_ModelDoc = openModle(partfilepath);
 
@@ -140,6 +142,7 @@ namespace SolidWorksAPI
             // 得到外形尺寸属性
             getBox(ref massOutput);
 
+            // 得到 CostingManager
             swCosting = (CostManager)swModelDocExt.GetCostingManager();
             swCosting.WaitForUIUpdate();
 
@@ -170,17 +173,14 @@ namespace SolidWorksAPI
             swCostingBody = swCostingPart.SetCostingMethod("", (int)swcMethodType_e.swcMethodType_Machining);
             if (swCostingBody == null)
             {
-                MessageBox.Show("制造成本计算失败");
-                return;
+                 
             }
-
 
             // 创建 common Costing analysis
             m_swCostingAnalysis = swCostingBody.CreateCostAnalysis(selectCostingTemp(type));
             m_swCostingAnalysis = swCostingBody.GetCostAnalysis();
             m_swCostingAnalysis.TotalQuantity = totalNum;
             m_swCostingAnalysis.LotSize = lotSize;
-
 
             // 得到 Costing bodies
             int nbrCostingBodies = swCostingPart.GetBodyCount();
@@ -199,12 +199,13 @@ namespace SolidWorksAPI
                 getCostingFeatures(ref CostingOutput);
             }
 
+
             DateTime dt2 = DateTime.Now;
 
             TimeSpan dt3 = dt2 - dt1;
 
             int goTime = dt3.Seconds;
-            MessageBox.Show(goTime.ToString() + "秒");
+          //  MessageBox.Show(moneys.ToString() + "元");
         }
         #region 扩展
         /// <summary>
@@ -356,6 +357,7 @@ namespace SolidWorksAPI
         /// </summary>
         private void closeAllSWDoc()
         {
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
             if (m_SwApp != null)
             {
                 m_SwApp.CloseAllDocuments(true);
@@ -789,6 +791,7 @@ namespace SolidWorksAPI
 
         private void button4_Click(object sender, EventArgs e)
         {
+            
             CWApp cwApp = new CWApp();
             CWPartDoc cwPd = (CWPartDoc)cwApp.IGetActiveDoc();
             CWMillMachine cwMiillMach = (CWMillMachine)cwPd.IGetMachine();
@@ -1048,6 +1051,7 @@ namespace SolidWorksAPI
                         sumStr += "┣   单次钻孔:" + Math.Round(item.Test_BoreSingleHole, 0) + "秒\n";
                         sumStr += "┣   扩孔时间:" + Math.Round(item.Test_BoreExpandHole,0) + "秒\n";
                         sumStr += "┣   点孔:" + item.Test_BoreDotHole + "秒\n";
+                        sumStr += "┣   换刀:" + item.Test_ToolChange + "秒\n";
                         sumStr += "┣   进给率:" + item.Test_FeedRate + "(mm/min)\n";
                         sumStr += "┣   固定减少:-11秒\n";
                         sumStr += "┣   " + item.Test_BoreMethod_1 + "\n";
@@ -1059,6 +1063,7 @@ namespace SolidWorksAPI
                     sumStr += "┣   单次钻孔:" + Math.Round(item.Test_SingleHole,0) + "秒\n";
                     sumStr += "┣   扩孔时间:" + Math.Round(item.Test_ExpandHole,0) + "秒\n";
                     sumStr += "┣   点孔:" + item.Test_DotHolel + "秒\n";
+                    sumStr += "┣   换刀:" + item.Test_ToolChange + "秒\n";
                     sumStr += "┣   进给率:" + item.Test_FeedRate + "(mm/min)\n";
                     sumStr += "┣   " + item.Test_BoreMethod_2 + "\n";
 
@@ -1075,6 +1080,7 @@ namespace SolidWorksAPI
                     sumStr += "┣   扩孔时间:" + Math.Round(item.Test_ExpandHole, 0) + "秒\n";
                     sumStr += "┣   沉头:" + item.Test_CounterBore + "秒\n";
                     sumStr += "┣   点孔:" + item.Test_DotHolel + "秒\n";
+                    sumStr += "┣   换刀:" + item.Test_ToolChange + "秒\n";
                     sumStr += "┣   进给率:" + item.Test_FeedRate + "(mm/min)\n";
                     sumStr += "┣   组:X" + item._SwCAM.SubFeatureCount + "\n";
                     sumStr += "┣   " + item.Test_MethodName + "\n";
@@ -1105,6 +1111,7 @@ namespace SolidWorksAPI
                         sumStr += "┣   单次钻孔:" + Math.Round(item.Test_SingleHole, 0) + "秒\n";
                         sumStr += "┣   扩孔时间:" + Math.Round(item.Test_ExpandHole, 0) + "秒\n";
                         sumStr += "┣   点孔:" + item.Test_DotHolel + "秒\n";
+                        sumStr += "┣   换刀:" + item.Test_ToolChange + "秒\n";
                         sumStr += "┣   进给率:" + item.Test_FeedRate + "(mm/min)\n";
                     }
                     sumStr += "┣   组:X" + item._SwCAM.SubFeatureCount + "\n";
@@ -1145,8 +1152,490 @@ namespace SolidWorksAPI
                 return "("+ min + "分钟)";
             }
         }
+
+        [DllImport("User32.dll", EntryPoint = "FindWindow")]
+        private static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [DllImport("user32.dll", EntryPoint = "FindWindowEx")]
+
+        private static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string lpszClass, string lpszWindow);
+
+        IntPtr ProcessHwnd;
+        [DllImport("user32.dll", EntryPoint = "SendMessage")]
+        private static extern int SendMessage(IntPtr hwnd, int wMsg, int wParam, int lParam);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetFocus(IntPtr hWnd);//设定焦点
+
+        //[DllImport("user32.dll", EntryPoint = "PostMessage")]
+        //public static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+
+        //消息发送API
+        [DllImport("User32.dll", EntryPoint = "PostMessage")]
+        public static extern int PostMessage(
+            IntPtr hWnd,        // 信息发往的窗口的句柄
+           int Msg,            // 消息ID
+            int wParam,         // 参数1
+            int lParam            // 参数2
+        );
+
+        private void button9_Click(object sender, EventArgs e)
+        {
+
+            //IntPtr ieMinZheng = new IntPtr(0);
+
+            //ieMinZheng = FindWindow("#32770", "CAMWorks 消息");
+
+            //ProcessHwnd = ieMinZheng;
+
+            //if (!ieMinZheng.Equals(IntPtr.Zero))
+            //{
+            //    MessageBox.Show("True");
+            //    const int BM_CLICK = 0xF5;
+            //    PostMessage1(ieMinZheng, BM_CLICK, 13, 13);
+            //    //const int WM_CHAR = 0x0102;
+            //    // SendMessage(ProcessHwnd, 258, 13, 0);     //发送点击按钮的消息
+            //    //const int WM_KEYDOWN = 0x0100;
+            //    ////释放一个键   
+            //    //const int WM_KEYUP = 0x0101;
+            //    //SendMessage(ieMinZheng, WM_KEYDOWN, 13, 13);
+            //    //SendMessage(ieMinZheng, WM_KEYUP, 13, 13);
+            //    //const int BM_CLICK = 0xF5;
+            //    //SendMessage(ieMinZheng, BM_CLICK, 0, 0);
+            //}
+            //else
+            //    MessageBox.Show("False");
+
+           // Thread thread = new Thread(new ThreadStart(CheckCAM_MSG_Thread));
+           // thread.Start();
+        }
+
+        public void CheckCAM_MSG_Thread()
+        {
+            while (true)
+            {
+                IntPtr IntPtrOne = new IntPtr(0);
+                IntPtrOne = FindWindow("#32770", "CAMWorks 消息");
+                if (!IntPtrOne.Equals(IntPtr.Zero))
+                {
+                    SendKeys.SendWait("{Enter}");
+                }
+
+                IntPtr IntPtrTwo = new IntPtr(0);
+                IntPtrTwo = FindWindow("#32770", "CAMWorks 警告");
+                if (!IntPtrTwo.Equals(IntPtr.Zero))
+                {
+                    SendKeys.SendWait("{Enter}");
+                }
+
+                IntPtr IntPtrThree = new IntPtr(0);
+                IntPtrThree = FindWindow("#32770", "SOLIDWORKS");
+                if (!IntPtrThree.Equals(IntPtr.Zero))
+                {
+                    SendKeys.SendWait("{Enter}");
+                }
+                Thread.Sleep(1000);
+            }
+                
+        }
+        [DllImport("user32.dll")]
+        static extern bool SetForegroundWindow(IntPtr hWnd);
+
+
+        private void button10_Click(object sender, EventArgs e)
+        {
+            IntPtr ieMinZheng = new IntPtr(0);
+
+            ieMinZheng = FindWindow("#32770", "CAMWorks 消息");
+
+            ProcessHwnd = ieMinZheng;
+
+            if (!ieMinZheng.Equals(IntPtr.Zero))
+            {
+                MessageBox.Show("True");
+
+                IntPtr childHwnd = FindWindowEx(ieMinZheng, IntPtr.Zero, "Button", "确定"); //通过按钮名获得按钮的句柄
+
+                const int BM_CLICK = 0xF5;
+
+                if (!childHwnd.Equals(IntPtr.Zero))
+                {
+                    MessageBox.Show("Child True");
+                    SendMessage(childHwnd, BM_CLICK, 0, 0);
+                    SendMessage(childHwnd, BM_CLICK, 0, 0);
+                }
+                else
+                {
+                    MessageBox.Show("Child False");
+                }
+
+                }
+            else
+                MessageBox.Show("False");
+        }
+
+        IntPtr IntPtrOne = new IntPtr(0);
+        IntPtr IntPtrTwo = new IntPtr(0);
+        IntPtr IntPtrThree = new IntPtr(0);
+
+        IntPtr IntPtrOneChild = new IntPtr(0);
+        IntPtr IntPtrTwoChild = new IntPtr(0);
+        IntPtr IntPtrThreeChild = new IntPtr(0);
+
+        const int BM_CLICK = 0xF5;
+
+        private void button11_Click(object sender, EventArgs e)
+        {
+            IntPtrTwo = FindWindow("#32770", "提示信息");
+            if (!IntPtrTwo.Equals(IntPtr.Zero))
+            {
+                MessageBox.Show("True");
+                IntPtrTwoChild = FindWindowEx(IntPtrTwo, IntPtr.Zero, "Button", "确定"); //通过按钮名获得按钮的句柄
+                if (!IntPtrTwoChild.Equals(IntPtr.Zero))
+                {
+                    MessageBox.Show("Child True");
+                    SendMessage(IntPtrTwoChild, BM_CLICK, 0, 0);
+                    SendMessage(IntPtrTwoChild, BM_CLICK, 0, 0);
+                }
+                else
+                {
+                    MessageBox.Show("Child False");
+                }
+            }
+            else
+            {
+                MessageBox.Show("False");
+            }
+        }
+
+        private void button12_Click(object sender, EventArgs e)
+        {
+            SldWorks swApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+            ModelDoc2 Part = null;
+
+            ModelDocExtension ModelDocExtension = default(ModelDocExtension);
+
+
+            Part = (ModelDoc2)swApp.ActiveDoc;
+
+            ModelDocExtension = Part.Extension;
+           
+
+
+
+
+           // MessageBox.Show(docUserUnit.SpecificUnitType.ToString()); //获取 长度单位 0 毫米 1厘米 2米 3英寸
+ 
+
+           // ModelDocExtension.SetUserPreferenceInteger((int)swUserPreferenceIntegerValue_e.swUnitsLinear,(int)swUserPreferenceOption_e.swDetailingNoOptionSpecified,0);
+
+            UserUnit docUserUnit = (UserUnit)Part.GetUserUnit((int)swUserUnitsType_e.swLengthUnit);
+
+            MessageBox.Show(docUserUnit.SpecificUnitType.ToString()); //获取 长度单位 0 毫米 1厘米 2米 3英寸
+
+          //  Application.Exit();
+
+        }
+
+        private void button13_Click(object sender, EventArgs e)
+        {
+
+            //Solidworks程序对象
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+
+            //打开文件
+            m_ModelDoc = openModle(partfilepath);
+
+            ModelDoc2 Part = null;
+            ModelDocExtension ModelDocExtension = default(ModelDocExtension);
+            Part = (ModelDoc2)m_SwApp.ActiveDoc;
+            ModelDocExtension = Part.Extension;
+            //设置单位为 0=毫米
+            ModelDocExtension.SetUserPreferenceInteger((int)swUserPreferenceIntegerValue_e.swUnitsLinear, (int)swUserPreferenceOption_e.swDetailingNoOptionSpecified, 0);
+
+            //UserUnit docUserUnit = (UserUnit)Part.GetUserUnit((int)swUserUnitsType_e.swLengthUnit);
+            //MessageBox.Show(docUserUnit.SpecificUnitType.ToString()); //获取 长度单位 0 毫米 1厘米 2米 3英寸
+
+            //仅支持零部件
+            if (m_ModelDoc.GetType() != (int)swDocumentTypes_e.swDocPART)
+            {
+                MessageBox.Show("仅支持零部件！");
+                return;
+            }
+            bool isSheetMetal = false;
+            bool isSolidBody = false;
+            bool isBlank = false;
+            string strError = string.Empty;
+
+            //仅支持单实体零部件
+            if (isMutiBodyOrSheetMetal(ref isBlank, ref isSheetMetal, ref isSolidBody, ref strError))
+            {
+                MessageBox.Show("仅支持单体零部件！");
+                return;
+            }
+
+            //空白图纸
+            if (isBlank)
+            {
+                MessageBox.Show("空白图纸！");
+                return;
+            }
+
+            //不支持钣金件
+            if (isSheetMetal)
+            {
+                MessageBox.Show("不支持钣金件！");
+                return;
+            }
+            //是否为实体零件
+            if (!isSolidBody)
+            {
+                MessageBox.Show("非实体零部件！");
+                return;
+            }
+
+
+            MessageBox.Show("Over");
+
+        }
+
+        private void button14_Click(object sender, EventArgs e)
+        {
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+
+            //打开文件
+            //ModelDoc2 swModel  = openModle(partfilepath);
+            //swModel.ViewDisplayHiddenremoved();// 变成二位画面
+
+
+            ModelDoc2 SwModel = (ModelDoc2)m_SwApp.ActiveDoc;
+            ModelDocExtension swModelDocExt = default(ModelDocExtension);
+            ModelView swModView = default(ModelView);
+            object[] modViews = null;
+            long Count = 0;
+
+            SwModel = (ModelDoc2)m_SwApp.ActiveDoc;
+            swModelDocExt = (ModelDocExtension)SwModel.Extension;
+
+            // Get model views
+            modViews = (object[])swModelDocExt.GetModelViews();
+
+            // Get number of model views
+            Count = swModelDocExt.GetModelViewCount();
+            Debug.Print("Number of model views: " + Count);
+
+            // Get the scale factor of each model view
+            for (long i = 0; i < Count; i++)
+            {
+                swModView = (ModelView)modViews[i];
+                Debug.Print("Scale factor of this model view is: " + swModView.Scale2);
+                //swModView.RotateAboutCenter(0,10);
+                // swModView.RotateAboutAxis(90, 0, 0, 0, 90, 90, 90);
+                //swModView.TranslateBy(90,90);
+                //swModView.RollBy(120);
+                swModView.RotateAboutPoint(90, 180, 0, 0, 0);
+
+            }
+
+        }
+ 
+
+        private void button15_Click(object sender, EventArgs e)
+        {
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+
+
+            ModelDoc2 swModel = (ModelDoc2)m_SwApp.ActiveDoc;
+
+
+            if (cboHM.SelectedIndex == 0)
+            {
+                swModel.ViewDisplayHiddenremoved();// 变成二位画面 
+            }
+            else if (cboHM.SelectedIndex == 1)
+            {
+                swModel.ViewDisplayHiddengreyed();//二维画面 透视  （透视部分为虚线）
+            }
+            else if (cboHM.SelectedIndex == 2)
+            {
+                swModel.ViewDisplayWireframe();//只有边线 透视
+            }
+            else if (cboHM.SelectedIndex == 3)
+            {
+                swModel.ViewDisplayShaded();//只有边线 透视
+            }
+            else
+            {
+                // 还原 默认状态
+                ModelView LoMyModelView = swModel.ActiveView;
+                LoMyModelView.DisplayMode = (int)swViewDisplayMode_e.swViewDisplayMode_ShadedWithEdges;
+            }
+
+        }
+        //图像另存为
+        private void button16_Click(object sender, EventArgs e)
+        {
+            //Solidworks程序对象
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+
+            m_ModelDoc = (ModelDoc2)m_SwApp.ActiveDoc;
+ 
+            ModelView LoMyModelView; //生成缩略图
+            LoMyModelView = m_ModelDoc.ActiveView;
+            LoMyModelView.FrameState = (int)swWindowState_e.swWindowMaximized;
+            m_ModelDoc.SaveAs("D:\\Images\\"+ txtTime.Text + ".jpg");
+
+            txtMsg.Text += "保存完成\n";
+        }
+
+        [DllImport("user32.dll")]
+        static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, uint dwExtraInfo);
+        private void button17_Click(object sender, EventArgs e)
+        {
+            //Solidworks程序对象
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+            m_ModelDoc = (ModelDoc2)m_SwApp.ActiveDoc;
+            m_ModelDoc.SaveAs("D:\\Images\\TEST.STL");
+            MessageBox.Show("FINISH");
+        }
+
+        private void button18_Click(object sender, EventArgs e)
+        {
+            string Center = ((Button)sender).Tag.ToString();
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+
+            m_ModelDoc = (ModelDoc2)m_SwApp.ActiveDoc;
+
+            if (Center == "X")
+            {
+                //m_ModelDoc.ViewRotateminusx();
+                //m_ModelDoc.ViewRotateminusx();
+                //m_ModelDoc.ViewRotateminusx();
+                //m_ModelDoc.ViewRotateminusx();
+                //m_ModelDoc.ViewRotateminusx();
+                //m_ModelDoc.ViewRotateminusx();
+
+                m_ModelDoc.ViewDisplayHiddenremoved();// 变成二位画面
+                m_ModelDoc.ShowNamedView2("*Isometric", 1);
+                m_ModelDoc.ViewZoomtofit2();
+            }
+            else if (Center == "Y")
+            {
+                //m_ModelDoc.ViewRotateminusy();
+                //m_ModelDoc.ViewRotateminusy();
+                //m_ModelDoc.ViewRotateminusy();
+                //m_ModelDoc.ViewRotateminusy();
+                //m_ModelDoc.ViewRotateminusy();
+                //m_ModelDoc.ViewRotateminusy();
+                m_ModelDoc.ViewDisplayHiddenremoved();// 变成二位画面
+                m_ModelDoc.ShowNamedView2("*Isometric", 3);
+                m_ModelDoc.ViewZoomtofit2();
+            }
+            else
+            {
+                //m_ModelDoc.ViewRotateminusz();
+                //m_ModelDoc.ViewRotateminusz();
+                //m_ModelDoc.ViewRotateminusz();
+                //m_ModelDoc.ViewRotateminusz();
+                //m_ModelDoc.ViewRotateminusz();
+                //m_ModelDoc.ViewRotateminusz();
+                m_ModelDoc.ViewDisplayHiddenremoved();// 变成二位画面
+                m_ModelDoc.ShowNamedView2("*Isometric", 6);
+                m_ModelDoc.ViewZoomtofit2();
+            }
+
+        }
+        private void button21_Click(object sender, EventArgs e)
+        {
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+            m_ModelDoc = (ModelDoc2)m_SwApp.ActiveDoc;
+            m_ModelDoc.SelectByID("Point1@原点", "EXTSKETCHPOINT", 0, 0, 0);
+            m_ModelDoc.BlankSketch();//隐藏原点
+            m_ModelDoc.InsertBkgImage("\\scenes\\01 basic scenes\\11 white kitchen.p2s");
+            ModelView LoMyModelView = m_ModelDoc.ActiveView;
+            LoMyModelView.FrameState = (int)swWindowState_e.swWindowMaximized;
+            LoMyModelView.InitializeShading();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            cboHM.SelectedIndex = 0;
+        }
+
+        private void btnssxx_Click(object sender, EventArgs e)
+        {
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+            m_ModelDoc = (ModelDoc2)m_SwApp.ActiveDoc;
+            m_ModelDoc.ViewZoomtofit2(); 
+        }
+
+        private void button22_Click(object sender, EventArgs e)
+        {
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+            m_ModelDoc = (ModelDoc2)m_SwApp.ActiveDoc; 
+            m_ModelDoc.ViewRotateminusx();//向下转动
+        }
+
+        private void button23_Click(object sender, EventArgs e)
+        {
+            closeAllSWDoc();
+        }
+
+        private void button24_Click(object sender, EventArgs e)
+        {
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+            ModelDoc2 swModel = (ModelDoc2)m_SwApp.ActiveDoc;
+            swModel.Extension.InsertScene("\\scenes\\01 basic scenes\\11 white kitchen.p2s"); // 修改背景色为纯白色
+            //swModel.ViewDisplayHiddenremoved();// 变成二位画面 
+
+            //swModel.ShowNamedView2("*Isometric", 1);
+            //swModel.ViewZoomtofit2();
+
+            //swModel.ShowNamedView2("*Isometric", 3);
+            //swModel.ViewZoomtofit2();
+
+            //swModel.ShowNamedView2("*Isometric", 6);
+            //swModel.ViewZoomtofit2();
+
+         
+        }
+        //获得尺寸
+        private string[] getBox(ModelDoc2 m_ModelDoc)
+        {
+            if (m_ModelDoc != null)
+            {
+                object boxobj = new object();
+                PartDoc swPartDoc = (PartDoc)m_ModelDoc;
+                if (swPartDoc != null)
+                {
+                    boxobj = swPartDoc.GetPartBox(true);
+                    if (boxobj != null)
+                    {
+                        double[] BoxFaceDblArray = new double[7];
+                        BoxFaceDblArray = (double[])boxobj;
+                        // 成本输出对象赋值
+                        string x = getLong(BoxFaceDblArray[3] - BoxFaceDblArray[0]);
+                        string y = getLong(BoxFaceDblArray[4] - BoxFaceDblArray[1]);
+                        string z = getLong(BoxFaceDblArray[5] - BoxFaceDblArray[2]);
+                        return new string[] { x, y, z };
+                    }
+                }
+            }
+            return new string[] { "", "", "" };
+        }
+        public string getLong(double value)
+        {
+            string longstr = "";
+            int factor = 1000;
+            longstr = (Math.Round(Math.Abs(value * factor), 5)).ToString();
+            return longstr;
+        }
+        private void button25_Click(object sender, EventArgs e)
+        {
+            m_SwApp = (SldWorks)Activator.CreateInstance(Type.GetTypeFromProgID("SldWorks.Application"));
+            ModelDoc2 swModel = (ModelDoc2)m_SwApp.ActiveDoc;
+            string[] str = getBox(swModel);
+            MessageBox.Show(str[0]+","+ str[1] + ","+ str[2]);
+        }
     }
-
-
 
 }
